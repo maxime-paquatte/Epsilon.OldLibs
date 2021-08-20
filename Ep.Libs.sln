@@ -11,11 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Model", "Epsilon.Mo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.DbUpdate", "Epsilon.DbUpdate\Epsilon.DbUpdate.csproj", "{92E52962-91C6-41BA-B03A-ECD2CBA93C09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.Messaging.Sql", "Epsilon.Messaging.Sql\Epsilon.Messaging.Sql.csproj", "{24F5B692-5911-46C0-A476-A0AB3E688E13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Messaging.Sql", "Epsilon.Messaging.Sql\Epsilon.Messaging.Sql.csproj", "{24F5B692-5911-46C0-A476-A0AB3E688E13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.Utils", "Epsilon.Utils\Epsilon.Utils.csproj", "{21417D33-B55B-43BD-9A26-9FD8E901F097}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Utils", "Epsilon.Utils\Epsilon.Utils.csproj", "{21417D33-B55B-43BD-9A26-9FD8E901F097}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.Messaging.Host.Tests", "Epsilon.Messaging.Host.Tests\Epsilon.Messaging.Host.Tests.csproj", "{529B52C3-3382-43A7-8AFB-DAC19E8C820C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Messaging.Host.Tests", "Epsilon.Messaging.Host.Tests\Epsilon.Messaging.Host.Tests.csproj", "{529B52C3-3382-43A7-8AFB-DAC19E8C820C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.DbUpdate.Tests", "Epsilon.DbUpdate.Tests\Epsilon.DbUpdate.Tests.csproj", "{3304F91A-1789-44EA-BC64-B97ADAE86AA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{529B52C3-3382-43A7-8AFB-DAC19E8C820C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{529B52C3-3382-43A7-8AFB-DAC19E8C820C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{529B52C3-3382-43A7-8AFB-DAC19E8C820C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3304F91A-1789-44EA-BC64-B97ADAE86AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3304F91A-1789-44EA-BC64-B97ADAE86AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3304F91A-1789-44EA-BC64-B97ADAE86AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3304F91A-1789-44EA-BC64-B97ADAE86AA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

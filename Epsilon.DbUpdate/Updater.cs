@@ -21,8 +21,14 @@ namespace Epsilon.DbUpdate
         private readonly string _assembliesPath;
         private readonly Action<string> _log;
 
-        private Dictionary<string, string> _versions = new Dictionary<string, string>();
-
+        private readonly Dictionary<string, string> _versions = new Dictionary<string, string>();
+        
+        private readonly Dictionary<string, List<MessageStoredProcedure>> _spDependencies = new Dictionary<string, List<MessageStoredProcedure>>();
+        private readonly HashSet<string> _changedProcedures = new HashSet<string>();
+        private readonly Regex _findChangedSp = new Regex(@"(?:alter|create)\s*procedure\s*(?<spName>\w*\.\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _findSpCall = new Regex(@"exec\s+(?<spName>\w*\.\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        
+        
         public Updater(string connectionString, string assembliesPath, Action<string> log)
         {
             _connectionString = connectionString;
@@ -32,7 +38,13 @@ namespace Epsilon.DbUpdate
 
         public void Update()
         {
-            FetchAllVersions();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                EnsureDbVersionTable(connection);
+                FetchAllVersions(connection);
+            }
 
             var version = long.Parse(_versions["Model"]);
             _log("Current Version: " + version);
@@ -40,38 +52,49 @@ namespace Epsilon.DbUpdate
             var sqlRes = FindSqlResources().ToArray();
             var migrations = FindNewerMigrationScripts(sqlRes, version);
             foreach (var migration in migrations.OrderBy(p => p.Time))
-            {
-                _log(migration.Time + "\t" + migration.Item + "\t" + migration.Name);
-                var r = ApplyMigration(migration);
-                if (!r) break;
-            }
+                ApplyMigration(migration);
 
             foreach (var storedProcedure in FindMessageStoredProcedure(sqlRes))
             {
                 if (!_versions.TryGetValue(storedProcedure.Fullname, out var v) || v != storedProcedure.Sha1)
+                    UpdateOrCreateSp(storedProcedure, v);
+            }
+
+            var changedSp = _changedProcedures.ToArray();
+            while (changedSp.Length > 0)
+            {
+                _changedProcedures.Clear();
+
+                foreach (var sp in changedSp)
                 {
-                    _log(storedProcedure.Fullname);
-                    var r = UpdateOrCreateSp(storedProcedure, v);
-                    if (!r) break;
+                    if (_spDependencies.ContainsKey(sp))
+                    {
+                        foreach (var spDependency in _spDependencies[sp])
+                            UpdateOrCreateSp(spDependency, spDependency.Sha1);
+                    }
                 }
+
+                changedSp = _changedProcedures.ToArray();
             }
         }
 
-        private bool ApplyMigration(Migration migration)
+        private void ApplyMigration(Migration migration)
         {
-            return PlayScript("Model", migration.Content, migration.Time.ToString(CultureInfo.InvariantCulture));
+            _log(migration.Time + "\t" + migration.Item + "\t" + migration.Name);
+            PlayScript("Model", migration.Content, migration.Time.ToString(CultureInfo.InvariantCulture));
         }
 
-        private bool UpdateOrCreateSp(MessageStoredProcedure sp, string lastVersion)
+        private void UpdateOrCreateSp(MessageStoredProcedure sp, string lastVersion)
         {
+            _log(sp.Fullname);
             var content = string.IsNullOrEmpty(lastVersion)
                 ? sp.Content.Replace("ALTER procedure", "CREATE procedure")
                 : sp.Content.Replace("CREATE procedure", "ALTER procedure");
 
-            return PlayScript(sp.Fullname, content, sp.Sha1);
+            PlayScript(sp.Fullname, content, sp.Sha1);
         }
 
-        private bool PlayScript(string name, string content, string version)
+        private void PlayScript(string name, string content, string version)
         {
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
@@ -79,8 +102,11 @@ namespace Epsilon.DbUpdate
 
             try
             {
-                var cmd = new SqlCommand(content, connection, transaction);
-                cmd.ExecuteNonQuery();
+                foreach (var subContent in content.Split("go"))
+                {
+                    var cmd = new SqlCommand(subContent, connection, transaction);
+                    cmd.ExecuteNonQuery();
+                }
 
                 var updateVersionQuery = @"
 UPDATE Ep.tDbVersion set Ver = @Version WHERE Name = @Name
@@ -92,7 +118,10 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
                 cmd2.ExecuteNonQuery();
 
                 transaction.Commit();
-                return true;
+
+                foreach (Match match in _findChangedSp.Matches(content).Where(m=> m.Success))
+                    _changedProcedures.Add(match.Groups["spName"].Value);
+                
             }
             catch (Exception ex)
             {
@@ -110,28 +139,20 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
                     // a closed connection.
                     _log($"\tMessage: {ex2.Message}");
                 }
-                throw ex;
+                throw;
             }
-
-            return false;
+            
         }
-
-  
-
-        private void FetchAllVersions()
+        
+        private void FetchAllVersions(SqlConnection connection)
         {
-            using var connection = new SqlConnection(_connectionString);
-            connection.Open();
-
-            EnsureDbVersionTable(connection);
+            
 
             var cmd = new SqlCommand($"select Name, Ver from Ep.tDbVersion", connection);
             var reader = cmd.ExecuteReader();
             while (reader.Read())
                 _versions.Add(reader.GetString(0), reader.GetString(1));
         }
-
-
 
         void EnsureDbVersionTable(SqlConnection connection)
         {
@@ -179,13 +200,25 @@ END
                 if (r.Success)
                 {
                     var content = resource.GetContent();
-                    yield return new MessageStoredProcedure
+
+                    var sp = new MessageStoredProcedure
                     {
                         Item = r.Groups["Item"].Value,
                         Name = r.Groups["Name"].Value,
                         Content = content,
                         Sha1 = Hash(content)
                     };
+
+
+                    foreach (Match match in _findSpCall.Matches(content).Where(m => m.Success))
+                    {
+                        var spName = match.Groups["spName"].Value;
+                        if (_spDependencies.ContainsKey(spName))
+                            _spDependencies[spName].Add(sp);
+                        else _spDependencies.Add(spName, new List<MessageStoredProcedure>{ sp });
+                    }
+
+                    yield return sp;
                 }
             }
         }

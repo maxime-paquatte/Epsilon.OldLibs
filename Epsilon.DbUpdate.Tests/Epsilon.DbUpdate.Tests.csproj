@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Test\Commands\scPageCreate.sql" />
+    <None Remove="Test\Commands\scSiteCreate.sql" />
+    <None Remove="Test\Migrations\20210730080000_Initial.sql" />
+    <None Remove="Test\Migrations\20210820212037_UpdateSp.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Test\Commands\scPageCreate.sql" />
+    <EmbeddedResource Include="Test\Commands\scSiteCreate.sql" />
+    <EmbeddedResource Include="Test\Migrations\20210820212037_UpdateSp.sql" />
+    <EmbeddedResource Include="Test\Migrations\20210730080000_Initial.sql" />
+  </ItemGroup>
+
+</Project>
