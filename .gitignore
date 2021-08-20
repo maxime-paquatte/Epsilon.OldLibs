@@ -4,3 +4,4 @@
 *.user
 *.bat
 *.pubxml
+/*/Properties/*
