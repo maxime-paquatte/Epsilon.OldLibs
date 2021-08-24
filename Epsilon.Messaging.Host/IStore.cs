@@ -6,6 +6,7 @@ namespace Epsilon.Messaging.Host
     public interface IStore
     {
         IEnumerable<string> Messages { get; }
+        IEnumerable<Type> MessageTypes { get; }
 
         IEnumerable<ICommandValidator> ResolveValidator(Type commandType);
         void RegisterValidator(Type commandType, Type validatorType);
@@ -19,7 +20,7 @@ namespace Epsilon.Messaging.Host
         IEnumerable<IEventHandler<TEvent>> ResolveEventHandlers<TEvent>(TEvent e)
             where TEvent : IEvent;
 
-        IQueryJSonReader ResolveReader(Type type);
+        IEnumerable<IQueryJSonReader> ResolveReader(Type type);
         void RegisterReader(Type queryType, Type readerType);
 
         Type ResolveMessageType(string fullName);

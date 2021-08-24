@@ -20,6 +20,7 @@ namespace Epsilon.Messaging.Host
         }
 
         public IEnumerable<string> Messages => _messagesTypes.Keys;
+        public IEnumerable<Type> MessageTypes => _messagesTypes.Values;
 
         #region CommandValidator
 
@@ -88,16 +89,11 @@ namespace Epsilon.Messaging.Host
         #endregion
 
         #region Reader
-        public IQueryJSonReader ResolveReader(Type type)
+        public IEnumerable<IQueryJSonReader> ResolveReader(Type type)
         {
-            List<Type> r;
-            _readers.TryGetValue(type, out r);
-            if (r == null) return null;
-
-            //TODO: find the last override
-            var t = r.FirstOrDefault();
-
-            return (IQueryJSonReader)_activator.Create(t);
+            return _readers.Where(kvp => kvp.Key.IsAssignableFrom(type))
+                .SelectMany(kvp => kvp.Value)
+                .Select(handlerType => (IQueryJSonReader)_activator.Create(handlerType));
         }
 
         public void RegisterReader(Type queryType, Type readerType)

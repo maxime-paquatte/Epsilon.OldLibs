@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Epsilon.Messaging.Host</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>

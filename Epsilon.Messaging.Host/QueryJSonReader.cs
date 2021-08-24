@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Epsilon.Messaging.Host
@@ -26,10 +27,13 @@ namespace Epsilon.Messaging.Host
                 if (claimsAttr != null && !_claimsValidator.ValidateAny(ctx, claimsAttr.Claims))
                     throw new UnauthorizedAccessException("Claims no validated: " + string.Join(", ", claimsAttr.Claims));
 
-                var reader = (IQueryJSonReader<T>)_store.ResolveReader(typeof(T));
-                if (reader == null) throw new InvalidOperationException("No reader found for query: " + typeof(T).FullName);
-
-                return reader.Read(ctx, query);
+                var readers = _store.ResolveReader(typeof(T)).ToArray();
+                foreach (IQueryJSonReader<T> reader in readers)   
+                {
+                    var r = reader.Read(ctx, query);
+                    if (r != null) return r;
+                }
+                throw new InvalidOperationException("No reader found for query: " + typeof(T).FullName);
             }
         }
     }

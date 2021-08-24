@@ -22,8 +22,8 @@ namespace Epsilon.Messaging.Sql
             _connectionString = connectionString;
         }
 
-        protected void Handle<T>(IEventDispatcher d, IMessageContext c, string commandId, T command, string spName)
-            where T : ICommand
+        
+        protected void Handle(IEventDispatcher d, IMessageContext c, string commandId, ICommand command, string spName)
         {
             using (var cnx = new SqlConnection(_connectionString))
             {
@@ -76,8 +76,7 @@ namespace Epsilon.Messaging.Sql
         }
 
 
-        private void SetCommandParams<TCommand>(IMessageContext c, string commandId, TCommand cmd, SqlCommand sqlCmd)
-            where TCommand : ICommand
+        private void SetCommandParams(IMessageContext c, string commandId, ICommand cmd, SqlCommand sqlCmd)
         {
             sqlCmd.Parameters.AddWithValue("@_ActorId", c.ActorId);
             sqlCmd.Parameters.AddWithValue("@_CultureId", c.CultureId);
@@ -86,7 +85,7 @@ namespace Epsilon.Messaging.Sql
             sqlCmd.Parameters.Add("@_Events", SqlDbType.NVarChar, -1).Value = "[]";
             sqlCmd.Parameters["@_Events"].Direction = ParameterDirection.InputOutput;
 
-            foreach (var p in typeof(TCommand).GetProperties())
+            foreach (var p in cmd.GetType().GetProperties())
             {
                 SqlParameter t = null;
                 object v;
