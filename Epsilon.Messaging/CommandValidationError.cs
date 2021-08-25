@@ -4,12 +4,12 @@
     {
         public string Key { get; set; }
 
-        public string Messsage { get; set; }
+        public string Message { get; set; }
 
         public CommandValidationError(string key, string message)
         {
             Key = key;
-            Messsage = message;
+            Message = message;
         }
 
         public CommandValidationError(string message)

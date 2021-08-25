@@ -11,8 +11,5 @@
         void Validate(IMessageContext context, T cmd, IErrorsCollector errors);
     }
 
-    public interface IStdCommandValidator : ICommandValidator<ICommand>
-    {
 
-    }
 }

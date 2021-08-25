@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -11,8 +12,11 @@ using Epsilon.Utils;
 
 namespace Epsilon.Messaging.Sql
 {
+ 
     public class SqlCommandHandlerBase
     {
+        private static ConcurrentDictionary<string, SqlTransaction> _transactions = new ConcurrentDictionary<string, SqlTransaction>();
+
         private readonly IBus _bus;
         private readonly string _connectionString;
 
@@ -28,7 +32,7 @@ namespace Epsilon.Messaging.Sql
             using (var cnx = new SqlConnection(_connectionString))
             {
                 cnx.Open();
-                var trx = cnx.BeginTransaction(commandId.Substring(0, 32));
+                var trx = _transactions.GetOrAdd(commandId, id => cnx.BeginTransaction(Guid.NewGuid().ToString("N")));
                 try
                 {
                     var sqlCmd = cnx.CreateCommand();
@@ -64,6 +68,7 @@ namespace Epsilon.Messaging.Sql
                             generic.Invoke(d, new object[] { instance });
                         }
                     }
+
                     trx.Commit();
                 }
                 catch (Exception ex)
@@ -71,7 +76,12 @@ namespace Epsilon.Messaging.Sql
                     trx.Rollback();
                     throw ex;
                 }
-                
+                finally
+                {
+                    if(_transactions.TryRemove(commandId, out var t))
+                        t.Dispose();
+
+                }
             }
         }
 

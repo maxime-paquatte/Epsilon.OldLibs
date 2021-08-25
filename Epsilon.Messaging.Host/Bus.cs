@@ -65,16 +65,13 @@ namespace Epsilon.Messaging.Host
                 _logger.Log(commandId, "Command values was : " + JsonSerializer.Serialize(command, _indentedSerializerOptions));
 
                 var validators = _store.ResolveValidator(cmdType);
+                StdCmdValidator(ctx, command, errorCollector);
                 foreach (var commandValidator in validators)
                 {
                     _logger.Log(commandId, "Run validator : " + commandValidator.GetType().FullName);
-                    var stdValidator = commandValidator as IStdCommandValidator;
-                    if (stdValidator == null)
-                    {
-                        var validator = (ICommandValidator<T>)commandValidator;
-                        validator.Validate(ctx, command, errorCollector);
-                    }
-                    else stdValidator.Validate(ctx, command, errorCollector);
+                    var validator = (ICommandValidator<T>)commandValidator;
+                    validator.Validate(ctx, command, errorCollector);
+                
                 }
 
                 _logger.Log(commandId, "Error count : " + errorCollector.Errors.Count());
@@ -95,6 +92,18 @@ namespace Epsilon.Messaging.Host
                     CommandId = commandId,
                     CommandValidationErrors = errorCollector.Errors
                 };
+            }
+        }
+
+        public virtual void StdCmdValidator(IMessageContext context, ICommand cmd, IErrorsCollector errors)
+        {
+            foreach (var prop in cmd.GetType().GetProperties())
+            {
+                var allAttrs = prop.GetCustomAttributes(true);
+                foreach (var attr in allAttrs.OfType<ICommandPropertyValidationAttribute>())
+                {
+                    attr.Validate(context, cmd, errors, prop);
+                }
             }
         }
 
