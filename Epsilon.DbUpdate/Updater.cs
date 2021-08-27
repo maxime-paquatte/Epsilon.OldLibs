@@ -51,14 +51,36 @@ namespace Epsilon.DbUpdate
 
             var sqlRes = FindSqlResources().ToArray();
             var migrations = FindNewerMigrationScripts(sqlRes, version);
+            var allSp = FindMessageStoredProcedure(sqlRes).ToArray();
+
+
+            if (version < 20210827213442)
+            {
+                FixSpDdbVersions(allSp);
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    FetchAllVersions(connection);
+                }
+            }
+
             foreach (var migration in migrations.OrderBy(p => p.Time))
                 ApplyMigration(migration);
 
-            foreach (var storedProcedure in FindMessageStoredProcedure(sqlRes))
+            //update sp
+            
+            _log("UPDATE SP");
+            foreach (var storedProcedure in allSp)
             {
                 if (!_versions.TryGetValue(storedProcedure.Fullname, out var v) || v != storedProcedure.Sha1)
                     UpdateOrCreateSp(storedProcedure, v);
+                _versions.Remove(storedProcedure.Fullname);
             }
+            //remove missing sp
+            _log("DELETE SP");
+            foreach (var remainingSpVersion in _versions.Keys.Where(p => p != "Model"))
+                DeleteSp(remainingSpVersion);
+
 
             var changedSp = _changedProcedures.ToArray();
             while (changedSp.Length > 0)
@@ -75,6 +97,41 @@ namespace Epsilon.DbUpdate
                 }
 
                 changedSp = _changedProcedures.ToArray();
+            }
+        }
+
+        private void DeleteSp(string spVersion)
+        {
+            _log(spVersion);
+            var parts = spVersion.Split('.');
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            var transaction = connection.BeginTransaction();
+            try
+            {
+                var cmd = new SqlCommand($"DROP Procedure [{parts[^2]}].[{parts[^1]}]", connection, transaction);
+                cmd.ExecuteNonQuery();
+                cmd = new SqlCommand($"delete from [Ep].[tDbVersion] where Name = '{spVersion}'", connection, transaction);
+                cmd.ExecuteNonQuery();
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                _log($"\tMessage: {ex.Message}");
+
+                // Attempt to roll back the transaction.
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception ex2)
+                {
+                    // This catch block will handle any errors that may have occurred
+                    // on the server that would cause the rollback to fail, such as
+                    // a closed connection.
+                    _log($"\tMessage: {ex2.Message}");
+                }
+                throw;
             }
         }
 
@@ -146,7 +203,7 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
         
         private void FetchAllVersions(SqlConnection connection)
         {
-            
+            _versions.Clear();
 
             var cmd = new SqlCommand($"select Name, Ver from Ep.tDbVersion", connection);
             var reader = cmd.ExecuteReader();
@@ -193,18 +250,21 @@ END
 
         private IEnumerable<MessageStoredProcedure> FindMessageStoredProcedure(SqlResource[] resources)
         {
-            var regex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries)\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
+            var schemaRegex = new Regex(@"(?:alter|create)\s*procedure \s*(?<ns>\w*)\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries)\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
             foreach (var resource in resources)
             {
-                var r = regex.Match(resource.ResName);
+                var r = resNameRegex.Match(resource.ResName);
                 if (r.Success)
                 {
                     var content = resource.GetContent();
+                    var schemaMatch = schemaRegex.Match(content);
 
                     var sp = new MessageStoredProcedure
                     {
                         Item = r.Groups["Item"].Value,
                         Name = r.Groups["Name"].Value,
+                        Schema = schemaMatch.Groups["ns"].Value,
                         Content = content,
                         Sha1 = Hash(content)
                     };
@@ -236,6 +296,44 @@ END
             }
         }
 
+        private void FixSpDdbVersions(MessageStoredProcedure[] allSp)
+        {
+            _log("Migration of old SP Db versions");
+
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            var transaction = connection.BeginTransaction();
+            try
+            {
+                foreach (var sp in allSp)
+                {
+                    var cmd = new SqlCommand("UPDATE [Ep].[tDbVersion] set Name = @newName where Name = @oldName", connection, transaction);
+                    cmd.Parameters.AddWithValue("@newName", sp.Fullname);
+                    cmd.Parameters.AddWithValue("@oldName", sp.FullnameOld);
+                    cmd.ExecuteNonQuery();
+                }
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                _log($"\tMessage: {ex.Message}");
+
+                // Attempt to roll back the transaction.
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception ex2)
+                {
+                    // This catch block will handle any errors that may have occurred
+                    // on the server that would cause the rollback to fail, such as
+                    // a closed connection.
+                    _log($"\tMessage: {ex2.Message}");
+                }
+                throw;
+            }
+        }
+
         static string Hash(string input)
         {
             var hash = new SHA1Managed().ComputeHash(Encoding.UTF8.GetBytes(input));
@@ -246,11 +344,13 @@ END
     class MessageStoredProcedure
     {
         public string Name { get; set; }
+        public string Schema { get; set; }
         public string Item { get; set; }
         public string Content { get; set; }
         public string Sha1 { get; set; }
 
-        public string Fullname => Item + "." + Name;
+        public string Fullname => Item + "." + Schema + "." + Name;
+        public string FullnameOld => Item + "." + Name;
     }
 
     class SqlResource

@@ -28,12 +28,15 @@ namespace Epsilon.Messaging.Host
                     throw new UnauthorizedAccessException("Claims no validated: " + string.Join(", ", claimsAttr.Claims));
 
                 var readers = _store.ResolveReader(typeof(T)).ToArray();
+                if(readers.Length == 0)
+                    throw new InvalidOperationException("No reader found for query: " + typeof(T).FullName);
+
                 foreach (IQueryJSonReader<T> reader in readers)   
                 {
                     var r = reader.Read(ctx, query);
                     if (r != null) return r;
                 }
-                throw new InvalidOperationException("No reader found for query: " + typeof(T).FullName);
+                throw new InvalidOperationException("no reader returned results: " + typeof(T).FullName);
             }
         }
     }

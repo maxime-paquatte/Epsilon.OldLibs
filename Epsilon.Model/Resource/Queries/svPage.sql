@@ -22,6 +22,6 @@ as begin
 	from EpRes.tRes r		
 	ORDER BY r.ResId DESC OFFSET @Skip ROWS 
 	FETCH NEXT IIF(@Take = 0, 50, @Take) ROWS ONLY
-	FOR JSON PATH
+	FOR JSON PATH, INCLUDE_NULL_VALUES    
 
 END
