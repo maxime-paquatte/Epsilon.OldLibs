@@ -59,7 +59,7 @@ namespace Epsilon.Messaging.Sql
                             {
                                 if (str == "CommandId") return commandId;
                                 if (eventElement.TryGetProperty(str, out var p))
-                                    return p.GetRawText();
+                                    return p.ValueKind == JsonValueKind.String ? p.GetString() : p.ToString();
                                 return null;
                             });
 

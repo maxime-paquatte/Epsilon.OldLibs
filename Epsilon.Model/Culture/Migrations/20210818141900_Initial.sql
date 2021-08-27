@@ -1,6 +1,6 @@
 ﻿CREATE TABLE Ep.tCulture
 (
-	CultureId		int not null identity( 1,1 ),
+	CultureId		int not null,
 	CultureKey		varchar(96),
 	DisplayName		varchar(256) ,
 
