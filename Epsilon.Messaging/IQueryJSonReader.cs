@@ -10,7 +10,7 @@
     {
     }
 
-    public interface IQueryJSonReader<T> : IQueryJSonReader
+    public interface IQueryJSonReader<in T> : IQueryJSonReader
         where T : IQuery
     {
         string Read(IMessageContext context, T query);
