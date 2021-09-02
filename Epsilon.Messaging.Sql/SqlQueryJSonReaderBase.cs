@@ -30,7 +30,12 @@ namespace Epsilon.Messaging.Sql
                 sqlCmd.CommandType = System.Data.CommandType.StoredProcedure;
                 sqlCmd.CommandText = spName;
                 SetCommandParams(c, query, sqlCmd);
-                return (string)sqlCmd.ExecuteScalar();
+
+                var sb = new StringBuilder();
+                using var reader = sqlCmd.ExecuteReader();
+                while (reader.Read())
+                    sb.Append(reader[0]);
+                return sb.ToString();
             }
         }
 

@@ -2,7 +2,7 @@
   
   <PropertyGroup>
     <PackageId>Epsilon.Messaging.Sql</PackageId>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
