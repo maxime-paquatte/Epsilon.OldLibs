@@ -251,7 +251,7 @@ END
         private IEnumerable<MessageStoredProcedure> FindMessageStoredProcedure(SqlResource[] resources)
         {
             var schemaRegex = new Regex(@"(?:alter|create)\s*procedure \s*(?<ns>\w*)\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries)\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
+            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries)(?:\.Res)?\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
             foreach (var resource in resources)
             {
                 var r = resNameRegex.Match(resource.ResName);
