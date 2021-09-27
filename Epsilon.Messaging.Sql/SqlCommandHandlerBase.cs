@@ -47,6 +47,9 @@ namespace Epsilon.Messaging.Sql
                     {
                         foreach (JsonElement eventElement in document.RootElement.EnumerateArray())
                         {
+                            if(eventElement.ValueKind == JsonValueKind.Null || eventElement.ValueKind == JsonValueKind.Undefined)
+                                continue;
+
                             string eventName = eventElement.GetProperty("EventName").GetString();
 
                             var type = _bus.ResolveMessage(eventName);
