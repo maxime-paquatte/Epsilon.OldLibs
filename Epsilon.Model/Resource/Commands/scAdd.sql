@@ -10,6 +10,7 @@ ALTER procedure EpRes.scAdd
 	@Args nvarchar(512) = null
 )
 as begin
+	set @ResName = TRIM(@ResName);
 	declare @resId int, @name nvarchar(512)
 	select @resId = ResId, @name = ResName from EpRes.tRes where ResName = @ResName COLLATE Latin1_General_CI_AS
 	

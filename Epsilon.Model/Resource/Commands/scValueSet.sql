@@ -17,7 +17,7 @@ as begin
 		insert into  EpRes.tResValue (ResId, CultureId, ResValue) VALUES (@ResId, @CultureId, @ResValue )
 
 	DECLARE @e NVARCHAR(MAX) =	(SELECT EventName = 'Epsilon.Model.Resource.Events.ResValueChanged', 
-		ResId = @resId, CultureId= @CultureId, ResValue = @ResValue FOR JSON PATH, WITHOUT_ARRAY_WRAPPER )  
+		ResId = @ResId, CultureId= @CultureId, ResValue = @ResValue FOR JSON PATH, WITHOUT_ARRAY_WRAPPER )  
 	SET @_Events =JSON_MODIFY(@_Events, 'append $',JSON_QUERY(@e))
 
 END
