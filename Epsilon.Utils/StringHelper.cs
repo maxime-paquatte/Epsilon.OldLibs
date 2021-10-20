@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -60,5 +61,30 @@ namespace Epsilon.Utils
             StringBuilder sb = null;
             return RemoveDiacritics(ref sb, input);
         }
+
+        public static Regex TemplateRegex = new Regex("\\{\\{\\s*(?<Key>\\w*)\\s*\\}\\}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
+
+        public static string ApplyTemplate(string template, object values)
+        {
+            var dic = ObjectHelper.AnonymousObjectToDictionary(values);
+            return ApplyTemplate(template, dic);
+        }
+
+        public static string ApplyTemplate(string template, IDictionary<string, object> values)
+        {
+            if (template == null) throw new ArgumentNullException("template");
+            if (values == null) throw new ArgumentNullException("values");
+
+            return ApplyTemplate(template, s => values.TryGetValue(s, out var val) ? val.ToString() : string.Empty);
+        }
+
+        public static string ApplyTemplate(string template, Func<string, string> fn)
+        {
+            if (template == null) throw new ArgumentNullException(nameof(template));
+            if (fn == null) throw new ArgumentNullException(nameof(fn));
+
+            return TemplateRegex.Replace(template, m => fn(m.Groups["Key"].Value));
+        }
+
     }
 }
