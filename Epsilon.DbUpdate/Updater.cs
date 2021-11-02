@@ -15,7 +15,7 @@ namespace Epsilon.DbUpdate
     public class Updater
     {
         private const int TransactionNameMaxLength = 32;
-        private const string AssemblyFilter = "*Epsilon*.dll";
+        private const string AssemblyFilter = "*Epsilon*.dll|*Ep.*.dll";
 
         private readonly string _connectionString;
         private readonly string _assembliesPath;
@@ -53,9 +53,13 @@ namespace Epsilon.DbUpdate
             var migrations = FindNewerMigrationScripts(sqlRes, version);
             var allSp = FindMessageStoredProcedure(sqlRes).ToArray();
 
+            _log("Migrations found");
+            foreach (var migration in migrations.OrderBy(p=> p.Time))
+                _log($"\t{migration.Item}\t{migration.Time}\t{migration.Name}");
 
-            if (version < 20210827213442)
+            if (version > 0 &&version < 20210827213442)
             {
+                _log("Fix Sp Dd Versions");
                 FixSpDdbVersions(allSp);
                 using (var connection = new SqlConnection(_connectionString))
                 {
@@ -64,6 +68,7 @@ namespace Epsilon.DbUpdate
                 }
             }
 
+            _log("APPLY MIGRATIONS");
             foreach (var migration in migrations.OrderBy(p => p.Time))
                 ApplyMigration(migration);
 
@@ -196,7 +201,7 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
                     // a closed connection.
                     _log($"\tMessage: {ex2.Message}");
                 }
-                throw;
+                throw new Exception("Error while playing script " + name, ex);
             }
             
         }
@@ -235,7 +240,7 @@ END
             foreach (var resource in resources)
             {
                 var r = regex.Match(resource.ResName);
-                if (r.Success && long.TryParse(r.Groups["Time"].Value, out var time) && time > version)
+                if (r.Success && long.TryParse(r.Groups["Time"].Value, out var time) && (version == 0 || time > version))
                 {
                     yield return new Migration
                     {
@@ -285,9 +290,12 @@ END
 
         private IEnumerable<SqlResource> FindSqlResources()
         {
-            foreach (var file in Directory.EnumerateFiles(_assembliesPath, AssemblyFilter, SearchOption.AllDirectories))
+            _log("Assemblies");
+            var files = AssemblyFilter.Split('|').SelectMany(f => Directory.EnumerateFiles(_assembliesPath, f, SearchOption.AllDirectories));
+            foreach (var file in files)
             {
                 var assembly = Assembly.LoadFile(file);
+                _log("\t" + assembly.FullName);
                 foreach (var res in assembly.GetManifestResourceNames()
                     .Where(p => p.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase)))
                 {

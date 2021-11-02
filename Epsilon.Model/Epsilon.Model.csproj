@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Epsilon.Model</PackageId>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
@@ -19,8 +19,10 @@
     <None Remove="Resource\Commands\scAdd.sql" />
     <None Remove="Resource\Commands\scValueSet.sql" />
     <None Remove="Resource\Migrations\20210826133410_Initial.sql" />
+    <None Remove="Resource\Migrations\20211025224733_AddComment.sql" />
     <None Remove="Resource\Queries\svForPrefixes.sql" />
     <None Remove="Resource\Queries\svPage.sql" />
+    <None Remove="SharedDic\Migrations\20211025151953_Initial.sql" />
   </ItemGroup>
 
 
@@ -31,9 +33,11 @@
     <EmbeddedResource Include="DbObj\Migrations\20210730083547_Initial.sql" />
     <EmbeddedResource Include="Resource\Commands\scValueSet.sql" />
     <EmbeddedResource Include="Resource\Commands\scAdd.sql" />
+    <EmbeddedResource Include="Resource\Migrations\20211025224733_AddComment.sql" />
     <EmbeddedResource Include="Resource\Migrations\20210826133410_Initial.sql" />
     <EmbeddedResource Include="Resource\Queries\svForPrefixes.sql" />
     <EmbeddedResource Include="Resource\Queries\svPage.sql" />
+    <EmbeddedResource Include="SharedDic\Migrations\20211025151953_Initial.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +48,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Epsilon.Messaging.Sql\Epsilon.Messaging.Sql.csproj" />
     <ProjectReference Include="..\Epsilon.Messaging\Epsilon.Messaging.csproj" />
+    <ProjectReference Include="..\Epsilon.Utils\Epsilon.Utils.csproj" />
   </ItemGroup>
 
 </Project>

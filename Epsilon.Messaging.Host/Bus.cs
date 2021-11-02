@@ -117,7 +117,7 @@ namespace Epsilon.Messaging.Host
                 _logger.Log(e.CommandId, "Event values was : " + _indentedSerializerOptions);
 
                 var handlers = _store.ResolveEventHandlers(e);
-                foreach (IEventHandler<T> handler in handlers)
+                foreach (IEventHandler<T> handler in handlers.Where(p=> p != null))
                 {
                     _logger.Log(e.CommandId, "Handle event : " + handler.GetType().FullName);
                     handler.Handle(ctx, e);

@@ -75,7 +75,7 @@ namespace Epsilon.Utils
             if (template == null) throw new ArgumentNullException("template");
             if (values == null) throw new ArgumentNullException("values");
 
-            return ApplyTemplate(template, s => values.TryGetValue(s, out var val) ? val.ToString() : string.Empty);
+            return ApplyTemplate(template, s => values.TryGetValue(s, out var val) ? val?.ToString() : string.Empty);
         }
 
         public static string ApplyTemplate(string template, Func<string, string> fn)
