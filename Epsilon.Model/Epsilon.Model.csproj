@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Epsilon.Model</PackageId>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
@@ -14,30 +14,124 @@
 
 
   <ItemGroup>
-    <None Remove="Culture\Migrations\20210818141900_Initial.sql" />
+    <None Remove="Actor\Res\sActorCreate.sql" />
+    <None Remove="Culture\Migrations\20210730083547_Initial.sql" />
+    <None Remove="Culture\Migrations\20211203130426_AddDefaultCulture.sql" />
     <None Remove="Culture\Queries\svCultureAll.sql" />
+    <None Remove="DbObj\Res\fCharCount.sql" />
+    <None Remove="PostalAddress\Res\Migrations\20210730083550_Initial.sql" />
+    <None Remove="Repository\Res\fvDbObjRepoValue.sql" />
+    <None Remove="Repository\Res\Migrations\20210730083548_Initial.sql" />
+    <None Remove="Repository\Res\scDbObjRepoValueChangeOrder.sql" />
+    <None Remove="Repository\Res\scDbObjRepoValueImport.sql" />
+    <None Remove="Repository\Res\scRepoAddDbObjType.sql" />
+    <None Remove="Repository\Res\scRepoCreate.sql" />
+    <None Remove="Repository\Res\scRepoRemoveDbObjType.sql" />
+    <None Remove="Repository\Res\scRepoSetOrderByValue.sql" />
+    <None Remove="Repository\Res\scRepoSetShowDate.sql" />
+    <None Remove="Repository\Res\scRepoSetSortable.sql" />
+    <None Remove="Repository\Res\scRepoValueBindingAdd.sql" />
+    <None Remove="Repository\Res\scRepoValueBindingDelete.sql" />
+    <None Remove="Repository\Res\scRepoValueBindingSetBothWay.sql" />
+    <None Remove="Repository\Res\scRepoValueBindingSetWeight.sql" />
+    <None Remove="Repository\Res\scRepoValueChange.sql" />
+    <None Remove="Repository\Res\scRepoValueContentChange.sql" />
+    <None Remove="Repository\Res\scRepoValueCreate.sql" />
+    <None Remove="Repository\Res\scRepoValueDelete.sql" />
+    <None Remove="Repository\Res\scRepoValueRename.sql" />
+    <None Remove="Repository\Res\scSetDbObjRepoValue.sql" />
+    <None Remove="Repository\Res\scSetDbObjRepoValueDate.sql" />
+    <None Remove="Repository\Res\sDbObjRepoValueEnsureIdx.sql" />
+    <None Remove="Repository\Res\seRepoValueChanged.sql" />
+    <None Remove="Repository\Res\seRepoValueCreated.sql" />
+    <None Remove="Repository\Res\seRepoValueDeleted.sql" />
+    <None Remove="Repository\Res\sRepoValueComputePath.sql" />
+    <None Remove="Repository\Res\sRepoValueComputeSystemKey.sql" />
+    <None Remove="Repository\Res\sRepoValueCreate.sql" />
+    <None Remove="Repository\Res\svDbObjRepo.sql" />
+    <None Remove="Repository\Res\svDbObjRepoValue.sql" />
+    <None Remove="Repository\Res\svRepoAll.sql" />
+    <None Remove="Repository\Res\svRepoById.sql" />
+    <None Remove="Repository\Res\svRepoForDbObjType.sql" />
+    <None Remove="Repository\Res\svRepoValueBindingForSource.sql" />
+    <None Remove="Repository\Res\svRepoValueBySystemKey.sql" />
+    <None Remove="Repository\Res\svRepoValueChildren.sql" />
+    <None Remove="Repository\Res\svRepoValues.sql" />
+    <None Remove="Repository\Res\svRepoValueTypeahead.sql" />
+    <None Remove="Repository\Res\vDbObjRepoValue.sql" />
+    <None Remove="Repository\Res\vRepoValue.sql" />
+    <None Remove="Repository\Res\vRepoValuePath.sql" />
     <None Remove="Resource\Commands\scAdd.sql" />
     <None Remove="Resource\Commands\scValueSet.sql" />
     <None Remove="Resource\Migrations\20210826133410_Initial.sql" />
     <None Remove="Resource\Migrations\20211025224733_AddComment.sql" />
     <None Remove="Resource\Queries\svForPrefixes.sql" />
     <None Remove="Resource\Queries\svPage.sql" />
+    <None Remove="Resource\Res\vRes.sql" />
     <None Remove="SharedDic\Migrations\20211025151953_Initial.sql" />
+    <None Remove="StdFolder\Res\Migrations\20210730083551_Initial.sql" />
   </ItemGroup>
 
 
   <ItemGroup>
     <EmbeddedResource Include="Actor\Migrations\20210730080000_Initial.sql" />
-    <EmbeddedResource Include="Culture\Migrations\20210818141900_Initial.sql" />
+    <EmbeddedResource Include="Actor\Res\sActorCreate.sql" />
+    <EmbeddedResource Include="Culture\Migrations\20211203130426_AddDefaultCulture.sql" />
+    <EmbeddedResource Include="Culture\Migrations\20210730083547_Initial.sql" />
     <EmbeddedResource Include="Culture\Queries\svCultureAll.sql" />
     <EmbeddedResource Include="DbObj\Migrations\20210730083547_Initial.sql" />
+    <EmbeddedResource Include="DbObj\Res\fCharCount.sql" />
+    <EmbeddedResource Include="PostalAddress\Res\Migrations\20210730083550_Initial.sql" />
+    <EmbeddedResource Include="Repository\Res\fvDbObjRepoValue.sql" />
+    <EmbeddedResource Include="Repository\Res\Migrations\20210730083548_Initial.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scDbObjRepoValueChangeOrder.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scDbObjRepoValueImport.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoAddDbObjType.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoCreate.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoRemoveDbObjType.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoSetOrderByValue.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoSetShowDate.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoSetSortable.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueBindingAdd.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueBindingDelete.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueBindingSetBothWay.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueBindingSetWeight.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueChange.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueContentChange.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueCreate.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueDelete.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scRepoValueRename.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scSetDbObjRepoValue.sql" />
+    <EmbeddedResource Include="Repository\Commands\Res\scSetDbObjRepoValueDate.sql" />
+    <EmbeddedResource Include="Repository\Res\sDbObjRepoValueEnsureIdx.sql" />
+    <EmbeddedResource Include="Repository\Events\Res\seRepoValueChanged.sql" />
+    <EmbeddedResource Include="Repository\Events\Res\seRepoValueCreated.sql" />
+    <EmbeddedResource Include="Repository\Events\Res\seRepoValueDeleted.sql" />
+    <EmbeddedResource Include="Repository\Res\sRepoValueComputePath.sql" />
+    <EmbeddedResource Include="Repository\Res\sRepoValueComputeSystemKey.sql" />
+    <EmbeddedResource Include="Repository\Res\sRepoValueCreate.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svDbObjRepo.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svDbObjRepoValue.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoAll.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoById.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoForDbObjType.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoValueBindingForSource.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoValueBySystemKey.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoValueChildren.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoValues.sql" />
+    <EmbeddedResource Include="Repository\Queries\Res\svRepoValueTypeahead.sql" />
+    <EmbeddedResource Include="Repository\Res\vDbObjRepoValue.sql" />
+    <EmbeddedResource Include="Repository\Res\vRepoValue.sql" />
+    <EmbeddedResource Include="Repository\Res\vRepoValuePath.sql" />
     <EmbeddedResource Include="Resource\Commands\scValueSet.sql" />
     <EmbeddedResource Include="Resource\Commands\scAdd.sql" />
     <EmbeddedResource Include="Resource\Migrations\20211025224733_AddComment.sql" />
     <EmbeddedResource Include="Resource\Migrations\20210826133410_Initial.sql" />
     <EmbeddedResource Include="Resource\Queries\svForPrefixes.sql" />
     <EmbeddedResource Include="Resource\Queries\svPage.sql" />
+    <EmbeddedResource Include="Resource\Res\vRes.sql" />
     <EmbeddedResource Include="SharedDic\Migrations\20211025151953_Initial.sql" />
+    <EmbeddedResource Include="StdFolder\Res\Migrations\20210730083551_Initial.sql" />
   </ItemGroup>
 
   <ItemGroup>

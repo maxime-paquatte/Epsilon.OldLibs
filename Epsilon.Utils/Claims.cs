@@ -10,18 +10,18 @@ namespace Epsilon.Utils
     {
         public static bool Validate(string[] user, string required)
         {
-            var e = new ClaismEvaluator(user, required);
+            var e = new ClaimsEvaluator(user, required);
             return e.Eval();
         }
     }
 
-    class ClaismEvaluator
+    class ClaimsEvaluator
     {
         private Parser _p;
         private string[] _user;
         private readonly string _required;
 
-        public ClaismEvaluator(string[] user, string required)
+        public ClaimsEvaluator(string[] user, string required)
         {
             _p = new Parser(required);
             _user = user;

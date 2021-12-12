@@ -23,6 +23,8 @@ namespace Epsilon.Model.SharedDic
         public T Get<T>( string key)
         {
             var strVal = _model.Get(key);
+            if (string.IsNullOrEmpty(strVal))
+                return default;
             return JsonSerializer.Deserialize<T>(strVal);
         }
 

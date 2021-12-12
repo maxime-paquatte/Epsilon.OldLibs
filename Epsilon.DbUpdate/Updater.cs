@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Epsilon.DbUpdate
@@ -22,13 +24,15 @@ namespace Epsilon.DbUpdate
         private readonly Action<string> _log;
 
         private readonly Dictionary<string, string> _versions = new Dictionary<string, string>();
-        
-        private readonly Dictionary<string, List<MessageStoredProcedure>> _spDependencies = new Dictionary<string, List<MessageStoredProcedure>>();
+        private readonly HashSet<string> _existing = new HashSet<string>();
+
+        Dictionary<string, SqlResource> _resources;
         private readonly HashSet<string> _changedProcedures = new HashSet<string>();
-        private readonly Regex _findChangedSp = new Regex(@"(?:alter|create)\s*procedure\s*(?<spName>\w*\.\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex _findSpCall = new Regex(@"exec\s+(?<spName>\w*\.\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
-        
+        private readonly Regex _findSpCall = new Regex(@"exec\s+(?<name>\w*\.s\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _findViewCall = new Regex(@"(?:from|join)\s+(?<name>\w*\.v\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _findFuncCall = new Regex(@"(?<name>\w*\.f\w*)\s*\(", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+
         public Updater(string connectionString, string assembliesPath, Action<string> log)
         {
             _connectionString = connectionString;
@@ -49,60 +53,32 @@ namespace Epsilon.DbUpdate
             var version = long.Parse(_versions["Model"]);
             _log("Current Version: " + version);
 
-            var sqlRes = FindSqlResources().ToArray();
-            var migrations = FindNewerMigrationScripts(sqlRes, version);
-            var allSp = FindMessageStoredProcedure(sqlRes).ToArray();
-
+            var files = FindSqlFiles().ToArray();
+            var migrations = FindNewerMigrationScripts(files, version).ToList();
+   
             _log("Migrations found");
-            foreach (var migration in migrations.OrderBy(p=> p.Time))
+            foreach (var migration in migrations.OrderBy(p=> p.Time).ThenBy(p=>p.Item))
                 _log($"\t{migration.Item}\t{migration.Time}\t{migration.Name}");
 
-            if (version > 0 &&version < 20210827213442)
-            {
-                _log("Fix Sp Dd Versions");
-                FixSpDdbVersions(allSp);
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    connection.Open();
-                    FetchAllVersions(connection);
-                }
-            }
+
+            _log("Find Resources");
+            _resources = FindResources(files).ToDictionary(p=>p.SchemaAndName);
+
 
             _log("APPLY MIGRATIONS");
             foreach (var migration in migrations.OrderBy(p => p.Time))
                 ApplyMigration(migration);
 
-            //update sp
-            
-            _log("UPDATE SP");
-            foreach (var storedProcedure in allSp)
-            {
-                if (!_versions.TryGetValue(storedProcedure.Fullname, out var v) || v != storedProcedure.Sha1)
-                    UpdateOrCreateSp(storedProcedure, v);
-                _versions.Remove(storedProcedure.Fullname);
-            }
-            //remove missing sp
-            _log("DELETE SP");
-            foreach (var remainingSpVersion in _versions.Keys.Where(p => p != "Model"))
+            //update sp, functions, views
+            _log("UPDATE RESOURCES");
+            foreach (var res in _resources.Values)
+                UpdateOrCreateRes(res, false);
+
+            //remove missing res
+            _log("DELETE RESOURCES");
+            foreach (var remainingSpVersion in _existing.Where(p => p != "Model"))
                 DeleteSp(remainingSpVersion);
 
-
-            var changedSp = _changedProcedures.ToArray();
-            while (changedSp.Length > 0)
-            {
-                _changedProcedures.Clear();
-
-                foreach (var sp in changedSp)
-                {
-                    if (_spDependencies.ContainsKey(sp))
-                    {
-                        foreach (var spDependency in _spDependencies[sp])
-                            UpdateOrCreateSp(spDependency, spDependency.Sha1);
-                    }
-                }
-
-                changedSp = _changedProcedures.ToArray();
-            }
         }
 
         private void DeleteSp(string spVersion)
@@ -143,17 +119,60 @@ namespace Epsilon.DbUpdate
         private void ApplyMigration(Migration migration)
         {
             _log(migration.Time + "\t" + migration.Item + "\t" + migration.Name);
-            PlayScript("Model", migration.Content, migration.Time.ToString(CultureInfo.InvariantCulture));
+            try
+            {
+                PlayScript("Model", migration.Content, migration.Time.ToString(CultureInfo.InvariantCulture));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to play migration {migration.Name} for {migration.Item}", ex);
+            }
         }
 
-        private void UpdateOrCreateSp(MessageStoredProcedure sp, string lastVersion)
+        private void UpdateOrCreateRes(SqlResource res, bool force, string chain = "")
         {
-            _log(sp.Fullname);
-            var content = string.IsNullOrEmpty(lastVersion)
-                ? sp.Content.Replace("ALTER procedure", "CREATE procedure")
-                : sp.Content.Replace("CREATE procedure", "ALTER procedure");
+            var chainParts = chain.Split('|');
+            if(chainParts.Contains(res.SchemaAndName))
+                return;
 
-            PlayScript(sp.Fullname, content, sp.Sha1);
+            //Force OR never installed OR changed
+            if (!_versions.TryGetValue(res.Fullname, out var lastVersion) || lastVersion != res.Sha1 || force)
+            {
+                //Not already installed (other resource reference)
+                if (!_changedProcedures.Contains(res.Fullname))
+                {
+                    _log(new string('\t', chainParts.Length) + res.Fullname);
+
+                    if (chainParts.Length > 20) throw new InvalidOperationException("Maximum depth exceeded");
+                    //Update Dependencies first
+                    foreach (var depName in res.Dependencies)
+                    {
+                        if (_resources.TryGetValue(depName, out var dep))
+                            UpdateOrCreateRes(dep, true, chain + "|" + res.SchemaAndName);
+                        else throw new Exception($"Missing dependency {depName} for resource {res.Fullname}");
+                    }
+                    
+                    //Replace only first occurrence of alter or create
+                    var content = res.File.GetContent();
+                    if (string.IsNullOrEmpty(lastVersion))
+                    {
+                        var regex = new Regex(@"ALTER\s*(?<name>(?:procedure|view|function))", RegexOptions.IgnoreCase);
+                        content = regex.Replace(content, "CREATE ${name}", 1);
+                    }
+                    else
+                    {
+                        var regex = new Regex(@"CREATE\s*(?<name>(?:procedure|view|function))", RegexOptions.IgnoreCase);
+                        content = regex.Replace(content, "ALTER ${name}", 1);
+                    }
+                    
+
+                    PlayScript(res.Fullname, content, res.Sha1);
+                    _changedProcedures.Add(res.Fullname);
+
+                    
+                }
+            }
+            _existing.Remove(res.Fullname);
         }
 
         private void PlayScript(string name, string content, string version)
@@ -164,10 +183,23 @@ namespace Epsilon.DbUpdate
 
             try
             {
-                foreach (var subContent in content.Split("go"))
+                foreach (var subContent in Regex.Split(content, @"[\r|\n][g|G][o|O]\s*[\r|\n]", RegexOptions.IgnoreCase))
                 {
-                    var cmd = new SqlCommand(subContent, connection, transaction);
-                    cmd.ExecuteNonQuery();
+                    var c = subContent.Trim();
+                    if (!string.IsNullOrEmpty(c))
+                    {
+                        var cmd = new SqlCommand(c, connection, transaction);
+                        cmd.CommandType = CommandType.Text;
+                        
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message + Environment.NewLine + subContent, ex);
+                        }
+                    }
                 }
 
                 var updateVersionQuery = @"
@@ -181,9 +213,6 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
 
                 transaction.Commit();
 
-                foreach (Match match in _findChangedSp.Matches(content).Where(m=> m.Success))
-                    _changedProcedures.Add(match.Groups["spName"].Value);
-                
             }
             catch (Exception ex)
             {
@@ -209,11 +238,15 @@ IF @@ROWCOUNT = 0  INSERT INTO Ep.tDbVersion (Name, Ver) VALUES(@Name, @Version)
         private void FetchAllVersions(SqlConnection connection)
         {
             _versions.Clear();
+            _existing.Clear();
 
             var cmd = new SqlCommand($"select Name, Ver from Ep.tDbVersion", connection);
             var reader = cmd.ExecuteReader();
             while (reader.Read())
+            {
                 _versions.Add(reader.GetString(0), reader.GetString(1));
+                _existing.Add(reader.GetString(0));
+            }
         }
 
         void EnsureDbVersionTable(SqlConnection connection)
@@ -234,7 +267,7 @@ END
             cmd.ExecuteNonQuery();
         }
 
-        private IEnumerable<Migration> FindNewerMigrationScripts(SqlResource[] resources, long version)
+        private IEnumerable<Migration> FindNewerMigrationScripts(SqlFile[] resources, long version)
         {
             var regex = new Regex(@"(?<Item>(?:\w|\.)*)\.Migrations\.(?<Time>\d*)_(?<Name>\w*)\.sql", RegexOptions.Compiled);
             foreach (var resource in resources)
@@ -253,42 +286,54 @@ END
             }
         }
 
-        private IEnumerable<MessageStoredProcedure> FindMessageStoredProcedure(SqlResource[] resources)
+        private IEnumerable<SqlResource> FindResources(SqlFile[] files)
         {
-            var schemaRegex = new Regex(@"(?:alter|create)\s*procedure \s*(?<ns>\w*)\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries)(?:\.Res)?\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
-            foreach (var resource in resources)
+            var schemaRegex = new Regex(@"(?:alter|create)\s*(?:function|procedure|view)\s*(?<ns>\w*)\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries|Res)(?:\.Res)?\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
+            foreach (var file in files)
             {
-                var r = resNameRegex.Match(resource.ResName);
+                var r = resNameRegex.Match(file.ResName);
                 if (r.Success)
                 {
-                    var content = resource.GetContent();
+                    var firstLine = file.GetFirstLine();
+                    var config = firstLine.StartsWith("--{")
+                        ? JsonSerializer.Deserialize<ResourceConfig>(firstLine.Trim('-'))
+                        : ResourceConfig.Empty;
+
+                    var content = file.GetContent();
                     var schemaMatch = schemaRegex.Match(content);
 
-                    var sp = new MessageStoredProcedure
+                    var res = new SqlResource
                     {
+                        File = file,
                         Item = r.Groups["Item"].Value,
                         Name = r.Groups["Name"].Value,
                         Schema = schemaMatch.Groups["ns"].Value,
-                        Content = content,
                         Sha1 = Hash(content)
                     };
 
+                    _log(res.Fullname);
+                    if (config != ResourceConfig.Empty)
+                        _log("\t" + config);
 
-                    foreach (Match match in _findSpCall.Matches(content).Where(m => m.Success))
+                    foreach (var name in _findSpCall.Matches(content)
+                            .Union(_findViewCall.Matches(content))
+                            .Union(_findFuncCall.Matches(content))
+                            .Where(m => m.Success)
+                            .Select(match => match.Groups["name"].Value)
+                            .Distinct())
                     {
-                        var spName = match.Groups["spName"].Value;
-                        if (_spDependencies.ContainsKey(spName))
-                            _spDependencies[spName].Add(sp);
-                        else _spDependencies.Add(spName, new List<MessageStoredProcedure>{ sp });
+                        if(name != res.SchemaAndName && !config.DoNotTrack.Contains(name))
+                            if(res.Dependencies.Add(name))
+                                _log("\t-->" + name);
                     }
-
-                    yield return sp;
+                    yield return res;
                 }
             }
         }
 
-        private IEnumerable<SqlResource> FindSqlResources()
+
+        private IEnumerable<SqlFile> FindSqlFiles()
         {
             _log("Assemblies");
             var files = AssemblyFilter.Split('|').SelectMany(f => Directory.EnumerateFiles(_assembliesPath, f, SearchOption.AllDirectories));
@@ -299,46 +344,8 @@ END
                 foreach (var res in assembly.GetManifestResourceNames()
                     .Where(p => p.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    yield return new SqlResource { Assembly = assembly, ResName = res };
+                    yield return new SqlFile { Assembly = assembly, ResName = res };
                 }
-            }
-        }
-
-        private void FixSpDdbVersions(MessageStoredProcedure[] allSp)
-        {
-            _log("Migration of old SP Db versions");
-
-            using var connection = new SqlConnection(_connectionString);
-            connection.Open();
-            var transaction = connection.BeginTransaction();
-            try
-            {
-                foreach (var sp in allSp)
-                {
-                    var cmd = new SqlCommand("UPDATE [Ep].[tDbVersion] set Name = @newName where Name = @oldName", connection, transaction);
-                    cmd.Parameters.AddWithValue("@newName", sp.Fullname);
-                    cmd.Parameters.AddWithValue("@oldName", sp.FullnameOld);
-                    cmd.ExecuteNonQuery();
-                }
-                transaction.Commit();
-            }
-            catch (Exception ex)
-            {
-                _log($"\tMessage: {ex.Message}");
-
-                // Attempt to roll back the transaction.
-                try
-                {
-                    transaction.Rollback();
-                }
-                catch (Exception ex2)
-                {
-                    // This catch block will handle any errors that may have occurred
-                    // on the server that would cause the rollback to fail, such as
-                    // a closed connection.
-                    _log($"\tMessage: {ex2.Message}");
-                }
-                throw;
             }
         }
 
@@ -349,19 +356,28 @@ END
         }
     }
 
-    class MessageStoredProcedure
+    class SqlResource
     {
+        public SqlFile File { get; set; }
+
         public string Name { get; set; }
         public string Schema { get; set; }
         public string Item { get; set; }
-        public string Content { get; set; }
         public string Sha1 { get; set; }
 
+        public string SchemaAndName => Schema + "." + Name;
         public string Fullname => Item + "." + Schema + "." + Name;
         public string FullnameOld => Item + "." + Name;
+
+        public HashSet<string> Dependencies { get; set; }
+
+        public SqlResource()
+        {
+            Dependencies = new HashSet<string>();
+        }
     }
 
-    class SqlResource
+    class SqlFile
     {
         public Assembly Assembly { get; set; }
         public string ResName { get; set; }
@@ -372,8 +388,28 @@ END
             Debug.Assert(stream != null, nameof(stream) + " != null");
 
             using StreamReader reader = new StreamReader(stream);
-
             return reader.ReadToEnd();
+        }
+
+        public string GetFirstLine()
+        {
+            using Stream stream = Assembly.GetManifestResourceStream(ResName);
+            Debug.Assert(stream != null, nameof(stream) + " != null");
+
+            using StreamReader reader = new StreamReader(stream);
+            return reader.ReadLine();
+        }
+    }
+
+    class ResourceConfig
+    {
+        public string[] DoNotTrack { get; set; }
+
+        public static ResourceConfig Empty { get; } = new ResourceConfig { DoNotTrack = Array.Empty<string>() };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this);
         }
     }
 }

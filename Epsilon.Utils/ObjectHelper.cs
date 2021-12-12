@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Epsilon.Utils
 {
@@ -79,6 +85,28 @@ namespace Epsilon.Utils
             }
             return dictionary;
         }
+        
+        public static dynamic ToExpando(dynamic obj)
+        {
+            IDictionary<string, object> anonymousDictionary = AnonymousObjectToDictionary(obj);
+            var expando = new Flexpando();
+            foreach (var kvp in anonymousDictionary)
+                expando.Dictionary.Add(kvp.Key, kvp.Value);
+            return expando;
+        }
+
+        public static bool CheckIfAnonymousType(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+
+            // HACK: The only way to detect anonymous types right now.
+            return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+                   && type.IsGenericType && type.Name.Contains("AnonymousType")
+                   && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+                   && type.Attributes.HasFlag(TypeAttributes.NotPublic);
+        }
+
 
         public static string SerializeObject<T>(T o)
         {
@@ -99,6 +127,24 @@ namespace Epsilon.Utils
             {
                 return (T)new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
             }
+        }
+
+    }
+
+    public class Flexpando : DynamicObject
+    {
+        public Dictionary<string, object> Dictionary
+            = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            Dictionary[binder.Name] = value;
+            return true;
+        }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            return Dictionary.TryGetValue(binder.Name, out result);
         }
     }
 }

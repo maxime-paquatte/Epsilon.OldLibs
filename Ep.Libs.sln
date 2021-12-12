@@ -19,9 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Messaging.Host.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.DbUpdate.Tests", "Epsilon.DbUpdate.Tests\Epsilon.DbUpdate.Tests.csproj", "{3304F91A-1789-44EA-BC64-B97ADAE86AA2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.BackgroundTask", "Epsilon.BackgroundTask\Epsilon.BackgroundTask.csproj", "{26C42D91-84A5-4AE2-96AD-E383673E9891}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.BackgroundTask", "Epsilon.BackgroundTask\Epsilon.BackgroundTask.csproj", "{26C42D91-84A5-4AE2-96AD-E383673E9891}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.OpenXml", "Epsilon.OpenXml\Epsilon.OpenXml.csproj", "{F547E9AC-8947-4BC7-91AD-3BB73C2042A5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epsilon.Utils.Tests", "Epsilon.Utils.Tests\Epsilon.Utils.Tests.csproj", "{A1761C24-5A46-402D-9620-3DF3BAEF19C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsilon.Model.Tests", "Epsilon.Model.Tests\Epsilon.Model.Tests.csproj", "{D3E9CDF0-828C-4FA5-8697-BB04FDAABA29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +73,14 @@ Global
 		{F547E9AC-8947-4BC7-91AD-3BB73C2042A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F547E9AC-8947-4BC7-91AD-3BB73C2042A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F547E9AC-8947-4BC7-91AD-3BB73C2042A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1761C24-5A46-402D-9620-3DF3BAEF19C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1761C24-5A46-402D-9620-3DF3BAEF19C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1761C24-5A46-402D-9620-3DF3BAEF19C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1761C24-5A46-402D-9620-3DF3BAEF19C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E9CDF0-828C-4FA5-8697-BB04FDAABA29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E9CDF0-828C-4FA5-8697-BB04FDAABA29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E9CDF0-828C-4FA5-8697-BB04FDAABA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E9CDF0-828C-4FA5-8697-BB04FDAABA29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

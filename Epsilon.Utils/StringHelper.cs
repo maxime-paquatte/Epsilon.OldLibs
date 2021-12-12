@@ -86,5 +86,21 @@ namespace Epsilon.Utils
             return TemplateRegex.Replace(template, m => fn(m.Groups["Key"].Value));
         }
 
+        private static readonly Regex EmailRegex = new Regex(@"([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
+
+        public static bool IsValidEmail(string email)
+        {
+            return EmailRegex.IsMatch(email);
+        }
+
+
+        //https://stackoverflow.com/a/847251
+        public static string MakeValidFileName(string name)
+        {
+            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+            string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
+
+            return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
+        }
     }
 }

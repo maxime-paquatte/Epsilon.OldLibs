@@ -34,6 +34,7 @@ namespace Epsilon.Messaging.Host
                 foreach (IQueryJSonReader<T> reader in readers)   
                 {
                     var r = reader.Read(ctx, query);
+                    if (r == string.Empty) return "{}";
                     if (r != null) return r;
                 }
                 throw new InvalidOperationException("no reader returned results: " + typeof(T).FullName);
