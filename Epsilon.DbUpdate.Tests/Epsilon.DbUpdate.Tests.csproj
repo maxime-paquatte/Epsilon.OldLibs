@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Test\Commands\scPageCreate.sql" />
-    <EmbeddedResource Include="Test\Commands\sModelSp.sql" />
+    <EmbeddedResource Include="Test\Res\sModelSp.sql" />
     <EmbeddedResource Include="Test\Commands\scSiteCreate.sql" />
     <EmbeddedResource Include="Test\Migrations\20210730080000_Initial.sql" />
   </ItemGroup>
