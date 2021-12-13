@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Epsilon.Model</PackageId>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
