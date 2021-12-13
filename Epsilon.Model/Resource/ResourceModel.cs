@@ -25,7 +25,7 @@ namespace Epsilon.Model.Resource
                 SELECT r.*, rv.ResValue
                 from EpRes.tRes r
                 inner join STRING_SPLIT(@prefixes, '|')  pref
-	                on r.ResName like pref.value + '%'
+	                on r.ResName like pref.value + '%' COLLATE Latin1_General_CI_AS 
                 left outer join EpRes.tResValue rv 
 	                on rv.ResId = r.ResId AND rv.CultureId = @cultureId
                 ", new { cultureId, prefixes });
@@ -38,27 +38,27 @@ namespace Epsilon.Model.Resource
                 select r.ResId, rv.ResValue
                 from EpRes.tRes r
                 left outer join EpRes.tResValue rv on rv.ResId = r.ResId AND rv.CultureId = @cultureId
-                where r.ResName = @resName 
+                where r.ResName = @resName  COLLATE Latin1_General_CI_AS
                 ", new { resName, cultureId });
         }
 
         internal void Create(string resName, string templateKeys, string comment)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            connection.Execute(@"insert into EpRes.tRes(ResName, Args, Comment) VALUES(@resName, @templateKeys, @comment)
+            connection.Execute(@"insert into EpRes.tRes(ResName, Args, Comment) VALUES(LOWER(@resName), @templateKeys, @comment)
                 ", new { resName, templateKeys, comment });
         }
 
         internal void SetResTemplateKeys(string resName, string args)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            connection.Execute(@"Update [EpRes].[tRes] set [Args] = @args where [ResName] = @resName", new { resName, args });
+            connection.Execute(@"Update [EpRes].[tRes] set [Args] = @args where [ResName] = @resName  COLLATE Latin1_General_CI_AS", new { resName, args });
         }
 
         internal string GetResTemplateKeys(string resName)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            return connection.ExecuteScalar<string>(@"select [Args] from [EpRes].[tRes] where [ResName] = @resName", new { resName });
+            return connection.ExecuteScalar<string>(@"select [Args] from [EpRes].[tRes] where [ResName] = @resName  COLLATE Latin1_General_CI_AS", new { resName });
         }
 
 
