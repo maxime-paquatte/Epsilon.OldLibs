@@ -288,8 +288,8 @@ END
 
         private IEnumerable<SqlResource> FindResources(SqlFile[] files)
         {
-            var schemaRegex = new Regex(@"(?:alter|create)\s*(?:function|procedure|view)\s*(?<ns>\w*)\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*)\.(?:Commands|Event|Queries|Res)(?:\.Res)?\.(?<Name>\w*)\.sql", RegexOptions.Compiled);
+            var schemaRegex = new Regex(@"(?:alter|create)\s*(?:function|procedure|view)\s*\[?(?<ns>\w*)]?\.(?<name>\w*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var resNameRegex = new Regex(@"(?<Item>(?:\w|\.)*?)\.(?:(?:Commands|Events|Queries|Res)\.)+(?<Name>\w*)\.sql", RegexOptions.Compiled);
             foreach (var file in files)
             {
                 var r = resNameRegex.Match(file.ResName);
