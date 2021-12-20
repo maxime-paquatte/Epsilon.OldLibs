@@ -1,21 +1,20 @@
 ﻿-- Version =*, Requires={  }
 
-CREATE FUNCTION Ep.fFolderItem(@FolderType nvarchar(96), @FolderId int)
-RETURNS XML 
+ALTER FUNCTION Ep.fFolderItem(@FolderType nvarchar(96), @FolderId int)
+RETURNS  nvarchar(MAX) 
 WITH RETURNS NULL ON NULL INPUT 
 AS BEGIN
 
-	DECLARE @RetVal XML;	
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
+	DECLARE @RetVal nvarchar(MAX);	
   
 	SELECT @RetVal = (
-		SELECT "@json:Array" = 'true', *,
+		SELECT *,Items =
 			CASE WHEN ParentId=@FolderId
-			THEN Ep.fFolderItem(@FolderType, StdFolderId)
+			THEN  JSON_QUERY(Ep.fFolderItem(@FolderType, StdFolderId))
 			END
 		FROM Ep.tStdFolder WHERE FolderType = @FolderType AND ParentId=@FolderId
 		order by StdFolderName
-		FOR XML PATH('Folders'), TYPE
+		FOR JSON PATH
 	)
 	RETURN @RetVal;
 END

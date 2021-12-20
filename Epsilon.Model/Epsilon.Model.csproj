@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Epsilon.Model</PackageId>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
@@ -62,6 +62,7 @@
     <None Remove="Repository\Res\vRepoValue.sql" />
     <None Remove="Repository\Res\vRepoValuePath.sql" />
     <None Remove="Resource\Commands\scAdd.sql" />
+    <None Remove="Resource\Commands\scDelete.sql" />
     <None Remove="Resource\Commands\scValueSet.sql" />
     <None Remove="Resource\Migrations\20210826133410_Initial.sql" />
     <None Remove="Resource\Migrations\20211025224733_AddComment.sql" />
@@ -69,7 +70,13 @@
     <None Remove="Resource\Queries\svPage.sql" />
     <None Remove="Resource\Res\vRes.sql" />
     <None Remove="SharedDic\Migrations\20211025151953_Initial.sql" />
+    <None Remove="StdFolder\Res\fFolderItem.sql" />
     <None Remove="StdFolder\Res\Migrations\20211213111504_Initial.sql" />
+    <None Remove="StdFolder\Res\scStdFolderCreate.sql" />
+    <None Remove="StdFolder\Res\scStdFolderDelete.sql" />
+    <None Remove="StdFolder\Res\scStdFolderMove.sql" />
+    <None Remove="StdFolder\Res\scStdFolderRename.sql" />
+    <None Remove="StdFolder\Res\svStdFolderAllByType.sql" />
   </ItemGroup>
 
 
@@ -123,6 +130,7 @@
     <EmbeddedResource Include="Repository\Res\vDbObjRepoValue.sql" />
     <EmbeddedResource Include="Repository\Res\vRepoValue.sql" />
     <EmbeddedResource Include="Repository\Res\vRepoValuePath.sql" />
+    <EmbeddedResource Include="Resource\Commands\scDelete.sql" />
     <EmbeddedResource Include="Resource\Commands\scValueSet.sql" />
     <EmbeddedResource Include="Resource\Commands\scAdd.sql" />
     <EmbeddedResource Include="Resource\Migrations\20211025224733_AddComment.sql" />
@@ -131,7 +139,13 @@
     <EmbeddedResource Include="Resource\Queries\svPage.sql" />
     <EmbeddedResource Include="Resource\Res\vRes.sql" />
     <EmbeddedResource Include="SharedDic\Migrations\20211025151953_Initial.sql" />
+    <EmbeddedResource Include="StdFolder\Res\fFolderItem.sql" />
     <EmbeddedResource Include="StdFolder\Res\Migrations\20211213111504_Initial.sql" />
+    <EmbeddedResource Include="StdFolder\Res\scStdFolderCreate.sql" />
+    <EmbeddedResource Include="StdFolder\Res\scStdFolderDelete.sql" />
+    <EmbeddedResource Include="StdFolder\Res\scStdFolderMove.sql" />
+    <EmbeddedResource Include="StdFolder\Res\scStdFolderRename.sql" />
+    <EmbeddedResource Include="StdFolder\Res\svStdFolderAllByType.sql" />
   </ItemGroup>
 
   <ItemGroup>

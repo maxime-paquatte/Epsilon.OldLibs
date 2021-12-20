@@ -12,9 +12,9 @@ ALTER procedure EpRes.scValueSet
 )
 as begin
 
-	Update EpRes.tResValue set ResValue = @ResValue where ResId = @ResId AND CultureId = @CultureId
+	Update EpRes.tResValue set ResValue = TRIM(@ResValue) where ResId = @ResId AND CultureId = @CultureId
 	IF @@ROWCOUNT = 0
-		insert into  EpRes.tResValue (ResId, CultureId, ResValue) VALUES (@ResId, @CultureId, @ResValue )
+		insert into  EpRes.tResValue (ResId, CultureId, ResValue) VALUES (@ResId, @CultureId, TRIM(@ResValue) )
 
 	DECLARE @e NVARCHAR(MAX) =	(SELECT EventName = 'Epsilon.Model.Resource.Events.ResValueChanged', 
 		ResId = @ResId, CultureId= @CultureId, ResValue = @ResValue FOR JSON PATH, WITHOUT_ARRAY_WRAPPER )  

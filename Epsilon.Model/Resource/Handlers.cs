@@ -8,7 +8,7 @@ using Epsilon.Model.Resource.Queries;
 
 namespace Epsilon.Model.Resource
 {
-    public class Handlers : SqlCommandHandlerBase, ICommandHandler<Add>, ICommandHandler<ValueSet>
+    public class Handlers : SqlCommandHandlerBase, ICommandHandler<Add>, ICommandHandler<ValueSet>, ICommandHandler<Delete>
     {
         public Handlers(IBus bus, IConfig config) : base(bus, config.ConnectionString)
         {
@@ -23,10 +23,14 @@ namespace Epsilon.Model.Resource
         {
             Handle(d, context, commandId, command, "EpRes.scValueSet");
         }
+        public void Handle(IEventDispatcher d, IMessageContext context, string commandId, Delete command)
+        {
+            Handle(d, context, commandId, command, "EpRes.scDelete");
+        }
     }
 
 
-    public class SqlQueryJSonReader : SqlQueryJSonReaderBase, IQueryJSonReader<Page>, IQueryJSonReader<All>
+    public class SqlQueryJSonReader : SqlQueryJSonReaderBase, IQueryJSonReader<Page>, IQueryJSonReader<ForPrefixes>
     {
         public SqlQueryJSonReader(IConfig config) : base(config.ConnectionString)
         {
@@ -37,7 +41,7 @@ namespace Epsilon.Model.Resource
             return Read(context, query, "EpRes.svPage");
         }
 
-        public string Read(IMessageContext context, All query)
+        public string Read(IMessageContext context, ForPrefixes query)
         {
             return Read(context, query, "EpRes.svForPrefixes");
         }

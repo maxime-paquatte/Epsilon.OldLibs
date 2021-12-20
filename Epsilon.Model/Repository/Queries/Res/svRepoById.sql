@@ -12,7 +12,6 @@ as begin
 
 
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
 		RepositoryId = r.RepoId,
 		RepositoryName = r.Name,
@@ -22,13 +21,13 @@ as begin
 		r.Required,
 		r.SystemKey,
 		(
-			select "@json:Array" = 'true', rdt.DbObjTypeId
+			select rdt.DbObjTypeId
 			from Ep.tRepoDbObjType rdt
 			where rdt.RepoId = r.RepoId
-			FOR XML PATH('DbObjTypes'),  ELEMENTS, TYPE
+			FOR JSON PATH, INCLUDE_NULL_VALUES
 		)
 	from Ep.tRepo r
 	where r.RepoId = @RepositoryId
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER
 
 end

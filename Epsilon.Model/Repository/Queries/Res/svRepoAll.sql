@@ -8,11 +8,7 @@ ALTER procedure Ep.svRepoAll
 )
 as begin
 
-
-
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		RepositoryId = r.RepoId,
 		RepositoryName = r.Name,
 		r.ShowDate,
@@ -22,14 +18,14 @@ as begin
 		r.Required,
 		r.SystemKey,
 		(
-			select "@json:Array" = 'true', rdt.DbObjTypeId
+			select rdt.DbObjTypeId
 			from Ep.tRepoDbObjType rdt
 			where rdt.RepoId = r.RepoId
-			FOR XML PATH('DbObjTypes'),  ELEMENTS, TYPE
+			FOR JSON PATH, INCLUDE_NULL_VALUES
 		)
 	from Ep.tRepo r
 	where r.RepoId > 0
 	order by r.Locked DESC, r.Required DESC, r.Name
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

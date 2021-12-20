@@ -16,9 +16,7 @@ as begin
 	if @RepoId is null OR @RepoId = 0
 		select @RepoId = RepoId from Ep.tRepo r where r.SystemKey = @SystemKey;
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		rv.*
 	from Ep.vRepoValue rv
 	inner join Ep.tRepo r on rv.RepoId = r.RepoId
@@ -27,7 +25,7 @@ as begin
 	ORDER BY 
 	  CASE WHEN r.OrderByValue = 1 THEN rv.Value END,
 	  CASE WHEN r.OrderByValue = 0 THEN rv.Name END
-
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	  
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

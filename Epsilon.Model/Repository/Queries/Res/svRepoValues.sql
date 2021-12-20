@@ -11,12 +11,7 @@ ALTER procedure Ep.svRepoValues
 )
 as begin
 
-
-	
-
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		rv.RepoValueId,
 		rv.RepoId,
 		RepositoryValueName = rv.Name,
@@ -31,7 +26,5 @@ as begin
 	where r.RepoId = @RepositoryId AND rv.CultureId = @CultureId
 	order by rv.Name
 
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
-
-
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 end

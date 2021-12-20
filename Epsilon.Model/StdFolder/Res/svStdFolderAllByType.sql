@@ -10,16 +10,12 @@ ALTER procedure Ep.svStdFolderAllByType
 )
 as begin
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
-	select 
-		"@json:Array" = 'true',
-		f.*,
-		Ep.fFolderItem(@FolderType, f.StdFolderId)
+	select f.*,
+		Items = JSON_QUERY(Ep.fFolderItem(@FolderType, f.StdFolderId))
 	from Ep.tStdFolder f
 	where f.StdFolderId = 0
 	AND f.ParentId is null
 	order by f.StdFolderName
-
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	FOR JSON PATH
 
 end

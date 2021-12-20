@@ -18,7 +18,7 @@ as begin
 	inner join Ep.tRepo r on r.RepoId = rv.RepoId
 	where rv.CultureId = @_CultureId AND
 	r.SystemKey = @RepoSystemKey AND rv.SystemKey = @ValueSystemKey
-
-	FOR XML PATH('data'),  ELEMENTS, TYPE
+	
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

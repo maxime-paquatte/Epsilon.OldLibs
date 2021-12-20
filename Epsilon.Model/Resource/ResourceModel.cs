@@ -45,7 +45,7 @@ namespace Epsilon.Model.Resource
         internal void Create(string resName, string templateKeys, string comment)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            connection.Execute(@"insert into EpRes.tRes(ResName, Args, Comment) VALUES(LOWER(@resName), @templateKeys, @comment)
+            connection.Execute(@"insert into EpRes.tRes(ResName, Args, Comment) VALUES(@resName, @templateKeys, @comment)
                 ", new { resName, templateKeys, comment });
         }
 

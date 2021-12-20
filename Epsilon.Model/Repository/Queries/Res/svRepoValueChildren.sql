@@ -21,9 +21,7 @@ as begin
 	if @Path <> ''
 	set  @rootDepth = LEN(@Path) - LEN(REPLACE(@Path, '.', '')) + 1;
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		rv.*,
 		Depth = LEN(rv.Name) - LEN(REPLACE(rv.Name, '.', '')),
 		Descendants = ( select count(*) from Ep.tRepoValue a where a.Name like rv.Name + '.%' and a.RepoId = r.RepoId  )
@@ -35,7 +33,7 @@ as begin
 	ORDER BY 
 	  CASE WHEN r.OrderByValue = 1 THEN rv.Value END,
 	  CASE WHEN r.OrderByValue = 0 THEN rv.Name END
-
-	FOR JSON PATH
+	  
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

@@ -10,9 +10,7 @@ ALTER procedure Ep.svRepoForDbObjType
 )
 as begin
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		r.RepoId,
 		r.Name,
 		r.SystemKey
@@ -21,7 +19,7 @@ as begin
 	inner join Ep.tRepoDbObjType rdt on r.RepoId = rdt.RepoId
 	inner join Ep.tDbObjType dt on rdt.DbObjTypeId = dt.DbObjTypeId
 	where dt.Name = @DbObjTypeName
-
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

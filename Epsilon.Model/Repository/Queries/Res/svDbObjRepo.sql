@@ -28,16 +28,14 @@ as begin
 	END;
 
 
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
 	select
-		"@json:Array" = 'true',
 		r.RepoId,
 		r.Name,
 		r.ShowDate,
 		r.SystemKey,
 		r.Sortable,
 		(
-			select "@json:Array" = 'true', drv.*, dr.Idx, dr.DateAdded, DbObjId = @DbObjId
+			select drv.*, dr.Idx, dr.DateAdded, DbObjId = @DbObjId
 			from Ep.tDbObjRepoValue dr			
 			inner join Ep.vRepoValue drv
 				on dr.RepoValueId = drv.RepoValueId	AND drv.CultureId = @_CultureId
@@ -46,11 +44,11 @@ as begin
 			  CASE WHEN r.Sortable = 1 THEN dr.Idx END,
 			  CASE WHEN r.OrderByValue = 1 THEN drv.Value END,
 			  CASE WHEN r.Sortable = 0 THEN drv.Name END
-			FOR XML PATH('Values'),  ELEMENTS, TYPE
+			FOR JSON PATH, INCLUDE_NULL_VALUES
 		)
 	from Ep.tRepo r
 	inner join @repoIds ids
 		on r.RepoId = ids.id
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 end

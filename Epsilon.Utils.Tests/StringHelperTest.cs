@@ -24,5 +24,6 @@ namespace Epsilon.Utils.Tests
         {
             Assert.False(StringHelper.IsValidEmail(email));
         }
+
     }
 }

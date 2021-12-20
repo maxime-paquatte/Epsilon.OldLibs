@@ -8,6 +8,7 @@ as begin
 
 	SELECT *
 	from Ep.tCulture
+	where CultureId > 0
 	order by CultureId
 	FOR JSON PATH
 

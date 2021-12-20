@@ -7,6 +7,6 @@ namespace Epsilon.Model.Repository.Queries
     {
         public int RepositoryId { get; set; }
 
-        public int ResCultureId { get; set; }
+        public int CultureId { get; set; }
     }
 }

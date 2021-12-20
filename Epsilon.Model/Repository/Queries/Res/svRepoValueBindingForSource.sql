@@ -10,17 +10,16 @@ ALTER procedure Ep.svRepoValueBindingForSource
 )
 as begin
 
-
 	
-	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json)
-	select "@json:Array" = 'true', 
+	select 
 			 r.RepoId, RepoName = r.Name, rv.RepoValueId, rv.Name, rv.Value, rv.Path, rvb.*
 		from Ep.tRepoValueBinding rvb
 		inner join Ep.vRepoValue rv on rv.RepoValueId = IIF(rvb.RepoValueTargetId = @RepoValueSourceId, rvb.RepoValueSourceId, rvb.RepoValueTargetId) AND rv.CultureId = @_CultureId
 		inner join Ep.tRepo r on rv.RepoId = r.RepoId
 
 		where rvb.RepoValueSourceId = @RepoValueSourceId OR rvb.RepoValueTargetId = @RepoValueSourceId
-	FOR XML PATH('data'), root('data'),  ELEMENTS, TYPE
+	
+	FOR JSON PATH, INCLUDE_NULL_VALUES
 
 
 

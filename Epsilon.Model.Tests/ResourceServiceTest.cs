@@ -8,7 +8,7 @@ namespace Epsilon.Model.Tests
     public class ResourceServiceTest
     {
         [Fact]
-        public void TestDefault()
+        public void GetBestLCIDDefault()
         {
             var langues = new Dictionary<string, double>();
             langues.Add("fr-FR", 0.9);
@@ -20,7 +20,7 @@ namespace Epsilon.Model.Tests
         }
 
         [Fact]
-        public void TestFrSecondPlace()
+        public void GetBestLCIDFrSecondPlace()
         {
             var langues = new Dictionary<string, double>();
             langues.Add("fr-FR", 0.9);
@@ -32,7 +32,7 @@ namespace Epsilon.Model.Tests
         }
 
         [Fact]
-        public void TestEmpty()
+        public void GetBestLCIDEmpty()
         {
             var langues = new Dictionary<string, double>();
             var lang = ResourceService.GetBestLCID(langues);
@@ -41,7 +41,7 @@ namespace Epsilon.Model.Tests
         }
 
         [Fact]
-        public void TestNotSupported()
+        public void GetBestLCIDNotSupported()
         {
             var langues = new Dictionary<string, double>();
             langues.Add("es", 1);
