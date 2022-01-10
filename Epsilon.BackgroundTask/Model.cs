@@ -18,7 +18,8 @@ namespace Epsilon.BackgroundTask
         public void AddTask(string taskKey, string taskType, string jsonConfig, DateTime? nextRun)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            connection.Execute("insert into Ep.tBackgroundTask (TaskKey, TaskType, JsonConfig, NextRun", 
+            connection.Execute("insert into Ep.tBackgroundTask (TaskKey, TaskType, JsonConfig, NextRun)" +
+                               "VALUES(@taskKey, @taskType, @jsonConfig, @nextRun)", 
                 new{ taskKey , taskType , jsonConfig , nextRun });
         }
 
@@ -46,7 +47,7 @@ namespace Epsilon.BackgroundTask
         public void SetState(string key, string state)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
-            connection.Execute(@"UPDATE Ep.tBackgroundTask set State = @state, NbRun = NbRun +1 WHERE TaskKey = @key", new{key, state});
+            connection.Execute(@"UPDATE Ep.tBackgroundTask set State = @state, NbRun = NbRun +1, LastRun = GETUTCDATE() WHERE TaskKey = @key", new{key, state});
         }
 
         public void SetNextRun(string key, DateTime date)

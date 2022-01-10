@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Epsilon.BackgroundTask
 {
-    public class Worker : IHostedService, IDisposable
+    public class Worker : IHostedService, IAsyncDisposable
     {
         private long _running = 0;
 
@@ -16,22 +16,26 @@ namespace Epsilon.BackgroundTask
         private readonly IExceptionLoggerService _exceptionLoggerService;
         private readonly ILogger<BackgroundService> _logger;
         private readonly Model _model;
+        private readonly ServicesStore _store;
         private Timer _timer;
 
         public Worker(IServiceProvider services,
             IExceptionLoggerService exceptionLoggerService,
             ILogger<BackgroundService> logger, 
-            Model model)
+            Model model, ServicesStore store)
         {
             _services = services;
             _exceptionLoggerService = exceptionLoggerService;
             _logger = logger;
             _model = model;
+            _store = store;
+
+            _logger.LogInformation("BackgroundTask construct.");
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Timed Hosted Service running.");
+            _logger.LogInformation("BackgroundTask running.");
 
             _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
@@ -40,12 +44,13 @@ namespace Epsilon.BackgroundTask
 
         private void DoWork(object state)
         {
+            _logger.LogInformation("BackgroundTask DoWork");
             try
             {
-                //check if last task is finish
                 var count = Interlocked.Increment(ref _running);
-                if (count <= 0)
+                if (count <= 1)
                 {
+                    //check if last task is finish
                     foreach (var t in _model.ShouldRunTasks())
                         RunTask(t);
                 }
@@ -58,9 +63,12 @@ namespace Epsilon.BackgroundTask
 
         private void RunTask(Model.BgTask task)
         {
+            _logger.LogInformation("BackgroundTask run task: " + task.TaskType);
             try
             {
-                var type = Type.GetType(task.TaskType, true);
+                if(!_store.Types.TryGetValue(task.TaskType, out var type))
+                    throw new Exception("IBackgroundTask not found in store: " + task.TaskType);
+
                 var service = _services.GetService(type) as IBackgroundTask;
                 
                 if (service == null) throw new Exception("task should implement IBackgroundTask");
@@ -77,15 +85,19 @@ namespace Epsilon.BackgroundTask
 
         public Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Timed Hosted Service is stopping.");
+            _logger.LogInformation("BackgroundTask is stopping.");
             _timer?.Change(Timeout.Infinite, 0);
 
             return Task.CompletedTask;
         }
 
-        public void Dispose()
+
+        public async ValueTask DisposeAsync()
         {
-            _timer?.Dispose();
+            if (_timer is IAsyncDisposable timer)
+                await timer.DisposeAsync();
+
+            _timer = null;
         }
     }
 }
