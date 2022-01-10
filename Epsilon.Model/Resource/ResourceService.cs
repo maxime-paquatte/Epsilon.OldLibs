@@ -21,7 +21,8 @@ namespace Epsilon.Model.Resource
 
         public IEnumerable<Value> ForPrefixes(int cultureId, string prefixes)
         {
-            return _model.ForPrefixes(cultureId, prefixes);
+            return _model.ForPrefixes(cultureId, prefixes)
+                .Select(p => new Value{ ResName = p.ResName, ResValue = p.ResValue ?? p.DefaultValue});
         }
 
         string GetResTemplate(string resName, int lcid, object templateValues = null)
@@ -34,29 +35,28 @@ namespace Epsilon.Model.Resource
                          ?? new Dictionary<string, object>();
 
             string[] keys = values.Select(p => p.Key).ToArray();
+            
+            //Resource exists and has value
+            if (res != null && !string.IsNullOrEmpty(res.ResValue))
+                return values.Count == 0 ? res.ResValue : StringHelper.ApplyTemplate(res.ResValue, values);
+            
+            //Resource exists and has default value
+            if (res != null && !string.IsNullOrEmpty(res?.DefaultValue))
+                return values.Count == 0 ? res.DefaultValue : StringHelper.ApplyTemplate(res.DefaultValue, values);
 
-            //Resource doesn't exists
-            if (res == null) _model.Create(resName, string.Join(",", keys), string.Empty);
+            //Resource doesn't exists, create it
+            if (res == null)
+                _model.Create(resName, string.Join(",", keys), string.Empty);
 
-            //Resource exists have no values
-            if (res==null || string.IsNullOrEmpty(res.ResValue))
+            if (keys.Length > 0)
             {
-                if (templateValues != null)
-                {
-                    var templatesKeys = _model.GetResTemplateKeys(resName);
-                    if (string.IsNullOrEmpty(templatesKeys)) _model.SetResTemplateKeys(resName, string.Join(",", keys));
-                    return "?" + resName + " " + string.Join(" ", keys.Select(p => "{{ " + p + " }}"));
-                }
-                return "?" + resName;
+                var templatesKeys = _model.GetResTemplateKeys(resName);
+                if (string.IsNullOrEmpty(templatesKeys)) _model.SetResTemplateKeys(resName, string.Join(",", keys));
+                return "?" + resName + " " + string.Join(" ", keys.Select(p => "{{ " + p + " }}"));
             }
-
-            //var cValues = GetContextTemplateValues() as ICollection<KeyValuePair<string, object>>
-            //              ?? ObjectHelper.AnonymousObjectToDictionary(GetContextTemplateValues())
-            //              ?? new Dictionary<string, object>();
-
-            //var allVals = values.Union(cValues).ToArray();
-            return values.Count == 0 ? res.ResValue : StringHelper.ApplyTemplate(res.ResValue, values);
+            return "?" + resName;
         }
+
 
         public string GetRes(string resName, int lcid, object obj = null)
         {

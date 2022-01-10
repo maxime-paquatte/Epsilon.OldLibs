@@ -22,12 +22,12 @@ namespace Epsilon.Model.Resource
         {
             using var connection = new SqlConnection(_config.ConnectionString);
             return connection.Query<Value>(@"
-                SELECT r.*, rv.ResValue
+                SELECT r.*, rv.ResValue, DefaultValue = rv9.ResValue
                 from EpRes.tRes r
                 inner join STRING_SPLIT(@prefixes, '|')  pref
 	                on r.ResName like pref.value + '%' COLLATE Latin1_General_CI_AS 
-                left outer join EpRes.tResValue rv 
-	                on rv.ResId = r.ResId AND rv.CultureId = @cultureId
+                left outer join EpRes.tResValue rv on rv.ResId = r.ResId AND rv.CultureId = @cultureId
+                left outer join EpRes.tResValue rv9 on rv9.ResId = r.ResId AND rv9.CultureId = 9
                 ", new { cultureId, prefixes });
         }
 
@@ -35,9 +35,10 @@ namespace Epsilon.Model.Resource
         {
             using var connection = new SqlConnection(_config.ConnectionString);
             return connection.QuerySingleOrDefault<Value>(@"
-                select r.ResId, rv.ResValue
+                select r.ResId, rv.ResValue, DefaultValue = rv9.ResValue
                 from EpRes.tRes r
                 left outer join EpRes.tResValue rv on rv.ResId = r.ResId AND rv.CultureId = @cultureId
+                left outer join EpRes.tResValue rv9 on rv9.ResId = r.ResId AND rv9.CultureId = 9
                 where r.ResName = @resName  COLLATE Latin1_General_CI_AS
                 ", new { resName, cultureId });
         }
@@ -67,8 +68,8 @@ namespace Epsilon.Model.Resource
     public class Value
     {
         public string ResName { get; set; }
-
         public string ResValue { get; set; }
+        public string DefaultValue { get; set; }
     }
 
 }
