@@ -7,7 +7,7 @@ ALTER procedure Ep.svRepoValues
 	@_CultureId			int,
 
 	@RepositoryId		int,
-	@CultureId int
+	@CultureId int = 0
 )
 as begin
 
@@ -23,7 +23,7 @@ as begin
 
 	from Ep.vRepoValue rv
 	inner join Ep.tRepo r on rv.RepoId = r.RepoId
-	where r.RepoId = @RepositoryId AND rv.CultureId = @CultureId
+	where r.RepoId = @RepositoryId AND rv.CultureId = IIF(@CultureId = 0, 9, @CultureId)
 	order by rv.Name
 
 	FOR JSON PATH, INCLUDE_NULL_VALUES
