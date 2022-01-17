@@ -29,61 +29,72 @@ namespace Epsilon.Messaging.Sql
         
         protected void Handle(IEventDispatcher d, IMessageContext c, string commandId, ICommand command, string spName)
         {
-            using (var cnx = new SqlConnection(_connectionString))
+            bool isNewConnection = false;
+            SqlConnection cnx;
+            if (!_transactions.TryGetValue(commandId, out var trx))
             {
-                cnx.Open();
-                var trx = _transactions.GetOrAdd(commandId, id => cnx.BeginTransaction(Guid.NewGuid().ToString("N")));
-                try
+                isNewConnection = true;
+                cnx = new SqlConnection(_connectionString);
+                cnx.Open(); 
+                trx = cnx.BeginTransaction(Guid.NewGuid().ToString("N"));
+                _transactions.TryAdd(commandId, trx);
+            }
+            else
+                cnx = trx.Connection;
+
+            try
+            {
+                var sqlCmd = cnx.CreateCommand();
+                sqlCmd.Transaction = trx;
+                sqlCmd.CommandTimeout = 120;
+                sqlCmd.CommandType = CommandType.StoredProcedure;
+                sqlCmd.CommandText = spName;
+                SetCommandParams(c, commandId, command, sqlCmd);
+                sqlCmd.ExecuteNonQuery();
+                var eventJson = (string)sqlCmd.Parameters["@_Events"].Value;
+                using (JsonDocument document = JsonDocument.Parse(eventJson))
                 {
-                    var sqlCmd = cnx.CreateCommand();
-                    sqlCmd.Transaction = trx;
-                    sqlCmd.CommandTimeout = 120;
-                    sqlCmd.CommandType = CommandType.StoredProcedure;
-                    sqlCmd.CommandText = spName;
-                    SetCommandParams(c, commandId, command, sqlCmd);
-                    sqlCmd.ExecuteNonQuery();
-                    var eventJson = (string)sqlCmd.Parameters["@_Events"].Value;
-                    using (JsonDocument document = JsonDocument.Parse(eventJson))
+                    foreach (JsonElement eventElement in document.RootElement.EnumerateArray())
                     {
-                        foreach (JsonElement eventElement in document.RootElement.EnumerateArray())
+                        if (eventElement.ValueKind == JsonValueKind.Null || eventElement.ValueKind == JsonValueKind.Undefined)
+                            continue;
+
+                        string eventName = eventElement.GetProperty("EventName").GetString();
+
+                        var type = _bus.ResolveMessage(eventName);
+                        if (type == null) throw new NotSupportedException("Event not found " + eventName);
+
+                        var instance = Activator.CreateInstance(type) as IEvent;
+                        if (instance == null) throw new InvalidOperationException("Event must be a  IEvent" + eventName);
+
+                        ObjectHelper.FillFromString(instance, str =>
                         {
-                            if(eventElement.ValueKind == JsonValueKind.Null || eventElement.ValueKind == JsonValueKind.Undefined)
-                                continue;
+                            if (str == "CommandId") return commandId;
+                            if (eventElement.TryGetProperty(str, out var p))
+                                return p.ValueKind == JsonValueKind.String ? p.GetString() : p.ToString();
+                            return null;
+                        });
 
-                            string eventName = eventElement.GetProperty("EventName").GetString();
-
-                            var type = _bus.ResolveMessage(eventName);
-                            if (type == null) throw new NotSupportedException("Event not found " + eventName);
-
-                            var instance = Activator.CreateInstance(type) as IEvent;
-                            if (instance == null) throw new InvalidOperationException("Event must be a  IEvent" + eventName);
-
-                            ObjectHelper.FillFromString(instance, str =>
-                            {
-                                if (str == "CommandId") return commandId;
-                                if (eventElement.TryGetProperty(str, out var p))
-                                    return p.ValueKind == JsonValueKind.String ? p.GetString() : p.ToString();
-                                return null;
-                            });
-
-                            MethodInfo method = typeof(IEventDispatcher).GetMethod("Fire");
-                            MethodInfo generic = method.MakeGenericMethod(type);
-                            generic.Invoke(d, new object[] { instance });
-                        }
+                        MethodInfo method = typeof(IEventDispatcher).GetMethod("Fire");
+                        MethodInfo generic = method.MakeGenericMethod(type);
+                        generic.Invoke(d, new object[] { instance });
                     }
-
+                }
+                if (isNewConnection)
                     trx.Commit();
-                }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                trx.Rollback();
+                throw ex;
+            }
+            finally
+            {
+                if (isNewConnection)
                 {
-                    trx.Rollback();
-                    throw ex;
-                }
-                finally
-                {
-                    if(_transactions.TryRemove(commandId, out var t))
+                    if (_transactions.TryRemove(commandId, out var t))
                         t.Dispose();
-
+                    cnx.Dispose();
                 }
             }
         }

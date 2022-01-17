@@ -42,7 +42,7 @@ namespace Epsilon.Messaging.Host
             return Send<T>(command, Guid.NewGuid().ToString("N"), d);
         }
 
-        public virtual CommandResult Send<T>(T command, string commandId, IEventDispatcher d) where T : ICommand
+        public virtual CommandResult Send<T>(T command, string commandId, IEventDispatcher d = null) where T : ICommand
         {
             var cmdType = typeof(T);
             using (var scope = _contextFactory.GetScope())
@@ -83,7 +83,7 @@ namespace Epsilon.Messaging.Host
                     {
                         var handler = (ICommandHandler<T>)handler1;
                         _logger.Log(commandId, "Handle command : " + handler.GetType().FullName);
-                        handler.Handle(d, ctx, commandId, command);
+                        handler.Handle(d ?? this, ctx, commandId, command);
                     }
                 }
 
