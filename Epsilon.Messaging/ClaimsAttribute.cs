@@ -6,11 +6,11 @@ namespace Epsilon.Messaging
     [AttributeUsage(AttributeTargets.Class)]
     public class AnyClaimsAttribute : Attribute
     {
-        public IEnumerable<string> Claims { get; private set; }
+        public string RequiredClaims { get; private set; }
 
-        public AnyClaimsAttribute(params string[] claims)
+        public AnyClaimsAttribute(string requiredClaims)
         {
-            Claims = claims;
+            RequiredClaims = requiredClaims;
         }
     }
 }

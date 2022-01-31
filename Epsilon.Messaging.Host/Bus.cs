@@ -50,8 +50,8 @@ namespace Epsilon.Messaging.Host
                 var ctx = scope.GetContext();
 
                 var claimsAttr = cmdType.GetCustomAttribute<AnyClaimsAttribute>();
-                if (claimsAttr != null && !_claimsValidator.ValidateAny(ctx, claimsAttr.Claims))
-                    throw new UnauthorizedAccessException("Claims no validated: " + string.Join(", ", claimsAttr.Claims));
+                if (claimsAttr != null && !_claimsValidator.ValidateAny(ctx, claimsAttr.RequiredClaims))
+                    throw new UnauthorizedAccessException("Claims no validated: " + claimsAttr.RequiredClaims);
 
                 var featureAttr = cmdType.GetCustomAttribute<FeatureAttribute>();
                 if (featureAttr != null && !_claimsValidator.ValidateFeature(ctx, featureAttr.Feature))

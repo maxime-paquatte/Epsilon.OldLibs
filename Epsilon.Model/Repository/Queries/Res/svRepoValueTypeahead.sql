@@ -22,9 +22,9 @@ as begin
 	inner join Ep.tRepo r on rv.RepoId = r.RepoId
 	where r.RepoId = @RepoId AND rv.CultureId = @_CultureId
 	AND LOWER(rv.Path) like '%' + LOWER(@Pattern) + '%'
-	ORDER BY 
-	  CASE WHEN r.OrderByValue = 1 THEN rv.Value END,
-	  CASE WHEN r.OrderByValue = 0 THEN rv.Name END
+	ORDER BY
+        CASE WHEN @Pattern != '' OR r.OrderByValue = 0 THEN rv.Name END,
+        CASE WHEN  r.OrderByValue = 1 THEN rv.Value END
 	  
 	FOR JSON PATH, INCLUDE_NULL_VALUES
 

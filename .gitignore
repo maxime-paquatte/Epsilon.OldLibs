@@ -5,3 +5,4 @@
 *.bat
 *.pubxml
 /*/Properties/*
+/.idea/
