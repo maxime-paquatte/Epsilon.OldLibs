@@ -41,7 +41,7 @@ namespace Epsilon.Messaging.Sql
             sqlCmd.Parameters.AddWithValue("@_CultureId", c.CultureId);
             sqlCmd.Parameters.AddWithValue("@_CommandId", ev.CommandId);
 
-            foreach (var p in typeof(TEvent).GetProperties().Where(p => p.Name != "Source"))
+            foreach (var p in typeof(TEvent).GetProperties().Where(p => p.Name != "CommandId"))
             {
                 SqlParameter t = null;
                 object v;
