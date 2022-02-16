@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Xml;
@@ -19,16 +20,44 @@ namespace Epsilon.Messaging.Sql
         protected void Handle<T>(IMessageContext c, T ev, string spName)
             where T : IEvent
         {
-            using (var cnx = new SqlConnection(_connectionString))
+            
+            bool isNewConnection = false;
+            SqlConnection cnx;
+            if (!SqlCommandHandlerBase._transactions.TryGetValue(ev.CommandId, out var trx))
             {
-                cnx.Open();
+                isNewConnection = true;
+                cnx = new SqlConnection(_connectionString);
+                cnx.Open(); 
+                trx = cnx.BeginTransaction(Guid.NewGuid().ToString("N"));
+                SqlCommandHandlerBase._transactions.TryAdd(ev.CommandId, trx);
+            }
+            else
+                cnx = trx.Connection;
+            
+            
+            try
+            {
+                var sqlCmd = cnx.CreateCommand();
+                sqlCmd.Transaction = trx;
+                sqlCmd.CommandTimeout = 120;
+                sqlCmd.CommandType = CommandType.StoredProcedure;
+                sqlCmd.CommandText = spName;
+                SetCommandParams(c, ev, sqlCmd);
+                sqlCmd.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+                if (isNewConnection)
+                    trx.Rollback();
+                throw;
+            }
+            finally
+            {
+                if (isNewConnection)
                 {
-                    var sqlCmd = cnx.CreateCommand();
-                    sqlCmd.CommandTimeout = 120;
-                    sqlCmd.CommandType = CommandType.StoredProcedure;
-                    sqlCmd.CommandText = spName;
-                    SetCommandParams(c, ev, sqlCmd);
-                    sqlCmd.ExecuteNonQuery();
+                    if (SqlCommandHandlerBase._transactions.TryRemove(ev.CommandId, out var t))
+                        t.Dispose();
+                    cnx.Dispose();
                 }
             }
         }

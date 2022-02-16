@@ -7,6 +7,24 @@ namespace Epsilon.Utils
 {
     public static class UriHelper
     {
+         //Ensure scheme is present in the URI.
+        public static string EnsureScheme(string uri)
+        {
+            if (string.IsNullOrEmpty(uri))
+            {
+                return uri;
+            }
+
+            if (uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return uri;
+            }
+
+            return "http://" + uri;
+        }
+         
+        
         /// <summary>When val is null, the parameter will be removed.</summary>
         private static string AddUrlParameter(string u, string parameter, string val, bool merge)
         {

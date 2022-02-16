@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 
 namespace Epsilon.Utils
 {
@@ -146,5 +147,11 @@ namespace Epsilon.Utils
         {
             return Dictionary.TryGetValue(binder.Name, out result);
         }
+    }
+    
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic] private static Random _local;
+        public static Random ThisThreadsRandom => _local ??= new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId));
     }
 }

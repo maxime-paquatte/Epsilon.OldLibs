@@ -15,7 +15,7 @@ namespace Epsilon.Messaging.Sql
  
     public class SqlCommandHandlerBase
     {
-        private static ConcurrentDictionary<string, SqlTransaction> _transactions = new ConcurrentDictionary<string, SqlTransaction>();
+        internal static ConcurrentDictionary<string, SqlTransaction> _transactions = new ConcurrentDictionary<string, SqlTransaction>();
 
         private readonly IBus _bus;
         private readonly string _connectionString;
