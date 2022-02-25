@@ -90,7 +90,7 @@ namespace Epsilon.Model.Resource
     }
 
 
-    [System.AttributeUsage(System.AttributeTargets.Enum)]
+    [AttributeUsage(AttributeTargets.Enum)]
     public class ResPrefixAttribute : Attribute
     {
         public string Prefix { get; set; }

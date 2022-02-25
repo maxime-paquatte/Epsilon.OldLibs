@@ -83,10 +83,10 @@ namespace Epsilon.Messaging.Sql
                 if (isNewConnection)
                     trx.Commit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 trx.Rollback();
-                throw ex;
+                throw;
             }
             finally
             {

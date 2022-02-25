@@ -34,7 +34,7 @@ namespace Epsilon.Messaging.Host
 
         public CommandResult Send<T>(T command) where T : ICommand
         {
-            return this.Send(command, this);
+            return Send(command, this);
         }
 
         public CommandResult Send<T>(T command, IEventDispatcher d) where T : ICommand
@@ -141,7 +141,7 @@ namespace Epsilon.Messaging.Host
                 Events.Add(typeof(T), l = new List<object>());
 
             l.Add(e);
-            return new DisposableCallback(() => this.Off(e));
+            return new DisposableCallback(() => Off(e));
         }
 
         public void Off<T>(Action<T> e)

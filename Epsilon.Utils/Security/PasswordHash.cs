@@ -59,7 +59,8 @@ namespace Epsilon.Utils.Security
         public static string CreateHash(string password)
         {
             // Generate a random salt
-            RNGCryptoServiceProvider csprng = new RNGCryptoServiceProvider();
+            
+            var csprng = RandomNumberGenerator.Create();
             byte[] salt = new byte[SALT_BYTE_SIZE];
             csprng.GetBytes(salt);
 

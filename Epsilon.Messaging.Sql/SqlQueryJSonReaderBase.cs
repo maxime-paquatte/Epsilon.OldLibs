@@ -27,7 +27,7 @@ namespace Epsilon.Messaging.Sql
                 cnx.Open();
                 var sqlCmd = cnx.CreateCommand();
                 sqlCmd.CommandTimeout = timeout;
-                sqlCmd.CommandType = System.Data.CommandType.StoredProcedure;
+                sqlCmd.CommandType = CommandType.StoredProcedure;
                 sqlCmd.CommandText = spName;
                 SetCommandParams(c, query, sqlCmd);
 

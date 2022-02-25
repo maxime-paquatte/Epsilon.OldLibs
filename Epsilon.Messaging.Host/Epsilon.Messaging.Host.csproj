@@ -1,19 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Epsilon.Messaging.Host</PackageId>
     <Version>1.0.7</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Epsilon.Messaging\Epsilon.Messaging.csproj" />
   </ItemGroup>
-
 </Project>

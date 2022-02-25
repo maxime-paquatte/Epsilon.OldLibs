@@ -109,27 +109,6 @@ namespace Epsilon.Utils
         }
 
 
-        public static string SerializeObject<T>(T o)
-        {
-            if (!typeof(T).IsSerializable) return null;
-
-            using (var stream = new MemoryStream())
-            {
-                new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Serialize(stream, o);
-                return Convert.ToBase64String(stream.ToArray());
-            }
-        }
-
-        public static T DeserializeObject<T>(string str)
-        {
-            byte[] bytes = Convert.FromBase64String(str);
-
-            using (var stream = new MemoryStream(bytes))
-            {
-                return (T)new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
-            }
-        }
-
     }
 
     public class Flexpando : DynamicObject

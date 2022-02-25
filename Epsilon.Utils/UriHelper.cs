@@ -49,7 +49,7 @@ namespace Epsilon.Utils
                 {
                     if (val == null)
                         return startAt == match.Index ? u.Remove(match.Index + 1, match.Length - 1) : (u.Length != match.Index + match.Length ? u.Remove(match.Index, match.Length - 1) : u.Remove(match.Index, match.Length));
-                    System.Text.RegularExpressions.Group group = match.Groups[1];
+                    Group group = match.Groups[1];
                     int length = match.Index + parameter.Length + 1;
                     return u.Substring(0, length) + (object)'=' + val + u.Substring(length + group.Length);
                 }
@@ -97,7 +97,7 @@ namespace Epsilon.Utils
         {
             if (val == null)
                 val = string.Empty;
-            return UriHelper.AddUrlParameter(u, parameter, val, false);
+            return AddUrlParameter(u, parameter, val, false);
         }
     }
 }

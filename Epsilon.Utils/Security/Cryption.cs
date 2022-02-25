@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Epsilon.Utils.Security
 {
@@ -34,10 +35,9 @@ namespace Epsilon.Utils.Security
             var secretKey = new PasswordDeriveBytes(_key, Encoding.ASCII.GetBytes(_salt));
 
 
-            RijndaelManaged RijndaelCipher = new RijndaelManaged();
 
             //Creates a symmetric encryptor object. 
-            ICryptoTransform Encryptor = RijndaelCipher.CreateEncryptor(secretKey.GetBytes(32), secretKey.GetBytes(16));
+            ICryptoTransform Encryptor = Aes.Create().CreateEncryptor(secretKey.GetBytes(32), secretKey.GetBytes(16));
 
             using (MemoryStream memoryStream = new MemoryStream())
             using (CryptoStream cryptoStream = new CryptoStream(memoryStream, Encryptor, CryptoStreamMode.Write))
@@ -62,10 +62,8 @@ namespace Epsilon.Utils.Security
             //The standard is documented in IETF RRC 2898.
             var secretKey = new PasswordDeriveBytes(_key, Encoding.ASCII.GetBytes(_salt));
 
-            RijndaelManaged RijndaelCipher = new RijndaelManaged();
-
             //Creates a symmetric Rijndael decryptor object.
-            ICryptoTransform Decryptor = RijndaelCipher.CreateDecryptor(secretKey.GetBytes(32), secretKey.GetBytes(16));
+            ICryptoTransform Decryptor = Aes.Create().CreateDecryptor(secretKey.GetBytes(32), secretKey.GetBytes(16));
             using (MemoryStream inputMs = new MemoryStream(input))
             using (CryptoStream cryptoStream = new CryptoStream(inputMs, Decryptor, CryptoStreamMode.Read))
             using (MemoryStream outputMs = new MemoryStream())
@@ -94,27 +92,17 @@ namespace Epsilon.Utils.Security
             return Encoding.UTF8.GetString(output);
         }
 
-
-
         public static string SerializeObject<T>(this Cryption @this, T o)
         {
             if (!typeof(T).IsSerializable) return null;
-
-            using (MemoryStream stream = new MemoryStream())
-            {
-                new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Serialize(stream, o);
-                return Convert.ToBase64String(@this.Encrypt(stream.ToArray()));
-            }
+            var json = JsonSerializer.Serialize(o, new JsonSerializerOptions());
+            return @this.Encrypt(json);
         }
 
         public static T DeserializeObject<T>(this Cryption @this, string str)
         {
-            byte[] bytes = @this.Decrypt(Convert.FromBase64String(str));
-
-            using (MemoryStream stream = new MemoryStream(bytes))
-            {
-                return (T)new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
-            }
+            var json = @this.Decrypt(str);
+            return JsonSerializer.Deserialize<T>(json);
         }
     }
 }

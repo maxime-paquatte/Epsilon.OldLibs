@@ -18,7 +18,7 @@ namespace Epsilon.Utils
 
         public static string CleanUrl(string url, char replaceChar, int maxLength = 0)
         {
-            url = StringHelper.RemoveDiacritics(url);
+            url = RemoveDiacritics(url);
             url = Regex.Replace(url, @"[^a-zA-Z0-9\s]", String.Empty);
             url = url.Replace(' ', replaceChar).Replace(new string(replaceChar, 2), replaceChar.ToString());
             url = url.ToLower().Trim(replaceChar);
@@ -97,10 +97,10 @@ namespace Epsilon.Utils
         //https://stackoverflow.com/a/847251
         public static string MakeValidFileName(string name)
         {
-            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+            string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
             string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
-            return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
+            return Regex.Replace(name, invalidRegStr, "_");
         }
     }
 }

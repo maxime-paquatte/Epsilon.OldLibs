@@ -1,18 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Epsilon.Model</PackageId>
     <Version>1.0.10</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
-
   <ItemGroup>
     <None Remove="Actor\Res\sActorCreate.sql" />
     <None Remove="Culture\Migrations\20210730083547_Initial.sql" />
@@ -79,8 +76,6 @@
     <None Remove="StdFolder\Res\scStdFolderRename.sql" />
     <None Remove="StdFolder\Res\svStdFolderAllByType.sql" />
   </ItemGroup>
-
-
   <ItemGroup>
     <EmbeddedResource Include="Actor\Migrations\20210730080000_Initial.sql" />
     <EmbeddedResource Include="Actor\Res\sActorCreate.sql" />
@@ -149,16 +144,13 @@
     <EmbeddedResource Include="StdFolder\Res\scStdFolderRename.sql" />
     <EmbeddedResource Include="StdFolder\Res\svStdFolderAllByType.sql" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.90" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Epsilon.Messaging.Sql\Epsilon.Messaging.Sql.csproj" />
     <ProjectReference Include="..\Epsilon.Messaging\Epsilon.Messaging.csproj" />
     <ProjectReference Include="..\Epsilon.Utils\Epsilon.Utils.csproj" />
   </ItemGroup>
-
 </Project>

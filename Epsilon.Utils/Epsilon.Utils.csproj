@@ -1,17 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-
   <PropertyGroup>
     <PackageId>Epsilon.Utils</PackageId>
     <Version>1.0.5</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
-
 </Project>

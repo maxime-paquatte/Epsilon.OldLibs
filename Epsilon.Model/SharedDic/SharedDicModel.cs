@@ -24,7 +24,7 @@ namespace Epsilon.Model.SharedDic
                 {
                     var cmd = cnx.CreateCommand();
 
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "Ep.sSharedDicCreate";
                     cmd.Parameters.AddWithValue("@Key", key);
                     cmd.Parameters.AddWithValue("@Value", value);
@@ -45,7 +45,7 @@ namespace Epsilon.Model.SharedDic
                 {
                     var cmd = cnx.CreateCommand();
 
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "Ep.sSharedDicCreateOrUpdate";
                     cmd.Parameters.AddWithValue("@Key", key);
                     cmd.Parameters.AddWithValue("@Value", value);
@@ -66,7 +66,7 @@ namespace Epsilon.Model.SharedDic
                 {
                     var cmd = cnx.CreateCommand();
 
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "Ep.sSharedDicUpdate";
                     cmd.Parameters.AddWithValue("@Key", key);
                     cmd.Parameters.AddWithValue("@Value", value);
@@ -109,7 +109,7 @@ namespace Epsilon.Model.SharedDic
                 {
                     var cmd = cnx.CreateCommand();
 
-                    cmd.CommandType = System.Data.CommandType.Text;
+                    cmd.CommandType = CommandType.Text;
                     cmd.CommandText = "delete from Ep.tSharedDic where [Key] = @Key";
                     cmd.Parameters.AddWithValue("@Key", key);
                     cmd.ExecuteNonQuery();

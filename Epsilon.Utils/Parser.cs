@@ -217,7 +217,7 @@ namespace Epsilon.Utils
             while (p.IsNumber(out term))
             {
                 r += term;
-                if (!p.Match(Parser.Token.Plus)) break;
+                if (!p.Match(Token.Plus)) break;
             }
             return r;
         }

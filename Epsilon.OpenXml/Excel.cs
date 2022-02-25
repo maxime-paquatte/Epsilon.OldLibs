@@ -50,13 +50,13 @@ namespace Epsilon.OpenXml
                 {
                     if (value is DBNull) return;
                     if (dataType == "integer")
-                        Excel.InsertInteger(_document, _sheet, col, row, (int)value);
+                        InsertInteger(_document, _sheet, col, row, (int)value);
                     else if (dataType == "decimal")
-                        Excel.InsertDecimal(_document, _sheet, col, row, (decimal)value);
+                        InsertDecimal(_document, _sheet, col, row, (decimal)value);
                     else if (dataType == "datetime")
-                        Excel.InsertDate(_document, _sheet, col, row, (DateTime)value);
+                        InsertDate(_document, _sheet, col, row, (DateTime)value);
                     else if (dataType == "bool")
-                        Excel.InsertBool(_document, _sheet, col, row, (byte)value == 1);
+                        InsertBool(_document, _sheet, col, row, (byte)value == 1);
                     else
                         Excel.InsertText(_document, _sheet, col, row, (string)value);
                 }
@@ -64,11 +64,11 @@ namespace Epsilon.OpenXml
                 public void InsertVal(string col, uint row, string value, string dataType)
                 {
                     if (dataType == "integer" && decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var i))
-                        Excel.InsertInteger(_document, _sheet, col, row, (int)i);
+                        InsertInteger(_document, _sheet, col, row, (int)i);
                     if (dataType == "decimal" && decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var n))
-                        Excel.InsertDecimal(_document, _sheet, col, row, n);
+                        InsertDecimal(_document, _sheet, col, row, n);
                     else if (dataType == "datetime" && DateTime.TryParse(value, out var d))
-                        Excel.InsertDate(_document, _sheet, col, row, d);
+                        InsertDate(_document, _sheet, col, row, d);
                     else
                         Excel.InsertText(_document, _sheet, col, row, value);
                 }
