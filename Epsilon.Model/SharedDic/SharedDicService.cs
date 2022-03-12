@@ -28,10 +28,10 @@ namespace Epsilon.Model.SharedDic
             return JsonSerializer.Deserialize<T>(strVal);
         }
 
-        public T CreateOrUpdate<T>( string key, T value, ExpirationDateRef dateRef, int expirationTime)
+        public T CreateOrUpdate<T>( string key, T value, ExpirationDateRef dateRef, int expirationSecond)
         {
             var json = JsonSerializer.Serialize(value, new JsonSerializerOptions{ WriteIndented = true});
-            _model.CreateOrUpdate(key, json, dateRef, expirationTime);
+            _model.CreateOrUpdate(key, json, dateRef, expirationSecond);
             return value;
         }
     }

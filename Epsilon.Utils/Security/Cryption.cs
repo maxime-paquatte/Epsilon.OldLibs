@@ -92,17 +92,26 @@ namespace Epsilon.Utils.Security
             return Encoding.UTF8.GetString(output);
         }
 
+        
         public static string SerializeObject<T>(this Cryption @this, T o)
         {
             if (!typeof(T).IsSerializable) return null;
-            var json = JsonSerializer.Serialize(o, new JsonSerializerOptions());
-            return @this.Encrypt(json);
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Serialize(stream, o);
+                return Convert.ToBase64String( @this.Encrypt(stream.ToArray()));
+            }
         }
 
         public static T DeserializeObject<T>(this Cryption @this, string str)
         {
-            var json = @this.Decrypt(str);
-            return JsonSerializer.Deserialize<T>(json);
+            byte[] bytes = @this.Decrypt(Convert.FromBase64String(str));
+
+            using (MemoryStream stream = new MemoryStream(bytes))
+            {
+                return (T)new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
+            }
         }
     }
 }
