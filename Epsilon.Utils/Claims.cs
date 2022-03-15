@@ -8,8 +8,9 @@ namespace Epsilon.Utils
 
     public class Claims
     {
-        public static bool Validate(string[] user, string required)
+        public static bool Validate(string[] user, string required, bool ignoreSysAdmin = false)
         {
+            if (!ignoreSysAdmin) required = $"%SysAdmin|({required})";
             var e = new ClaimsEvaluator(user, required);
             return e.Eval();
         }
