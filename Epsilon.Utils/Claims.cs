@@ -10,7 +10,12 @@ namespace Epsilon.Utils
     {
         public static bool Validate(string[] user, string required, bool ignoreSysAdmin = false)
         {
-            if (!ignoreSysAdmin) required = $"%SysAdmin|({required})";
+            if (ignoreSysAdmin && string.IsNullOrEmpty(required))
+                return false;
+
+            if (!ignoreSysAdmin)
+                required = string.IsNullOrEmpty(required) ? $"%SysAdmin" : $"%SysAdmin|({required})";
+            
             var e = new ClaimsEvaluator(user, required);
             return e.Eval();
         }

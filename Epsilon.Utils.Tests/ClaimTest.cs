@@ -26,7 +26,7 @@ namespace Epsilon.Utils.Tests
         [InlineData("%.AAA|(%.BBB&%.DDD)")]
         public void ClaimOk(string claim)
         {
-            Assert.True(Claims.Validate(_userClaims, claim));
+            Assert.True(Claims.Validate(_userClaims, claim), $"Claim '{claim}' should be valid for user");
         }
 
         [Theory]
@@ -34,11 +34,15 @@ namespace Epsilon.Utils.Tests
         [InlineData("%.DDD&(%.AAA|%.BBB)")]
         public void ClaimKo(string claim)
         {
-            Assert.False(Claims.Validate(_userClaims, claim));
-            
-            Assert.True(Claims.Validate(_admin, claim));
+            Assert.False(Claims.Validate(_userClaims, claim), $"Claim '{claim}' should be invalid for user");
+            Assert.True(Claims.Validate(_admin, claim), $"Claim '{claim}' should be valid for admin");
         }
        
-
+        [Fact]
+        public void ClaimEmpty()
+        {
+            Assert.False(Claims.Validate(_userClaims, string.Empty), $"Empty claim should be invalid for user");
+            Assert.True(Claims.Validate(_admin, string.Empty), $"Empty claim should be valid for admin");
+        }
     }
 }
