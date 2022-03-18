@@ -17,7 +17,7 @@ as begin
 		r.Locked,
 		r.Required,
 		r.SystemKey,
-		(
+        DbObjTypes = (
 			select rdt.DbObjTypeId
 			from Ep.tRepoDbObjType rdt
 			where rdt.RepoId = r.RepoId

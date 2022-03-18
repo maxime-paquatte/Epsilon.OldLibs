@@ -9,6 +9,8 @@ ALTER procedure EpRes.svPage
 	@Take int
 )
 as begin
+    
+    set @Prefixes = REPLACE(@Prefixes, '*', '%');
 
 --declare 	@Skip int = 0, 	@Take int = 50
 	SELECT r.ResId, r.ResName, r.Args, r.Comment,
