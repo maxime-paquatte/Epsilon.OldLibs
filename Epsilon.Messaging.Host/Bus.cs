@@ -15,7 +15,7 @@ namespace Epsilon.Messaging.Host
         protected readonly IClaimsValidator _claimsValidator;
         protected readonly IBusLogger _logger;
 
-        private readonly JsonSerializerOptions _indentedSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
+        private readonly JsonSerializerOptions _indentedSerializerOptions = new() { WriteIndented = true };
 
 
         public Bus(IStore store, IMessageContextFactory contextFactory,
@@ -83,7 +83,18 @@ namespace Epsilon.Messaging.Host
                     {
                         var handler = (ICommandHandler<T>)handler1;
                         _logger.Log(commandId, "Handle command : " + handler.GetType().FullName);
-                        handler.Handle(d ?? this, ctx, commandId, command);
+                        try
+                        {
+                            handler.Handle(d ?? this, ctx, commandId, command);
+                        }
+                        catch (Exception ex)
+                        {
+                            var newEx = new Exception("Error while handling command : " + handler.GetType().FullName, ex);
+                            newEx.Data["commandId"] = commandId;
+                            newEx.Data["Command"] = JsonSerializer.Serialize(command, _indentedSerializerOptions);
+                            newEx.Data["Context"] = JsonSerializer.Serialize(ctx, _indentedSerializerOptions);
+                            throw newEx;
+                        }
                     }
                 }
 
