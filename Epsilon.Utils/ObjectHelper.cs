@@ -56,7 +56,10 @@ namespace Epsilon.Utils
                                 v = DateTime.Parse(val, ci, DateTimeStyles.AdjustToUniversal);
                             else if (typeof(Guid).IsAssignableFrom(type))
                                 v = Guid.Parse(val);
-                            else v = Convert.ChangeType(val, type, ci);
+                            else if (typeof(decimal).IsAssignableFrom(type))
+                                v = decimal.Parse(val.Replace(',', '.').Replace(" ", ""), CultureInfo.InvariantCulture);
+                            else 
+                                v = Convert.ChangeType(val, type, ci);
 
                             p.SetValue(o, v, null);
                         }
