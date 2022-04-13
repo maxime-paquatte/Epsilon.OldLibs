@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Dapper;
 using Epsilon.Utils;
+
 
 namespace Epsilon.Model.Resource
 {
@@ -18,7 +20,7 @@ namespace Epsilon.Model.Resource
             _config = config;
         }
 
-        internal IEnumerable<Value> ForPrefixes(int cultureId, string prefixes)
+        internal virtual IEnumerable<Value> ForPrefixes(int cultureId, string prefixes)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
             return connection.Query<Value>(@"
@@ -31,7 +33,7 @@ namespace Epsilon.Model.Resource
                 ", new { cultureId, prefixes });
         }
 
-        internal Value GetResValue(string resName, int cultureId)
+        internal virtual Value GetResValue(string resName, int cultureId)
         {
             using var connection = new SqlConnection(_config.ConnectionString);
             return connection.QuerySingleOrDefault<Value>(@"
@@ -45,6 +47,9 @@ namespace Epsilon.Model.Resource
 
         internal void Create(string resName, string templateKeys, string comment)
         {
+            if(!resName.StartsWith("Res."))
+                throw new ArgumentException("ResName must start with 'Res.'");
+            
             using var connection = new SqlConnection(_config.ConnectionString);
             connection.Execute(@"insert into EpRes.tRes(ResName, Args, Comment) VALUES(@resName, @templateKeys, @comment)
                 ", new { resName, templateKeys, comment });

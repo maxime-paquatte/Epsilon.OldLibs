@@ -106,11 +106,17 @@ namespace Epsilon.Utils.Security
 
         public static T DeserializeObject<T>(this Cryption @this, string str)
         {
-            byte[] bytes = @this.Decrypt(Convert.FromBase64String(str));
-
-            using (MemoryStream stream = new MemoryStream(bytes))
+            try
             {
-                return (T)new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
+                byte[] bytes = @this.Decrypt(Convert.FromBase64String(str));
+                using (MemoryStream stream = new MemoryStream(bytes))
+                {
+                    return (T) new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unable to Deserialize: " + str, ex);
             }
         }
     }
