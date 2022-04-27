@@ -43,7 +43,7 @@ namespace Epsilon.Messaging.Sql
                 isNewConnection = true;
                 cnx = new SqlConnection(_connectionString);
                 cnx.Open(); 
-                trx = cnx.BeginTransaction(Guid.NewGuid().ToString("N"));
+                trx = cnx.BeginTransaction(IsolationLevel.ReadUncommitted, Guid.NewGuid().ToString("N"));
                 _transactions.TryAdd(commandId, trx);
             }
             else
