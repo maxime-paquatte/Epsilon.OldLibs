@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Epsilon.Messaging.Sql</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Maxime Paquatte</Authors>
     <Company>Epsilon Research</Company>
   </PropertyGroup>

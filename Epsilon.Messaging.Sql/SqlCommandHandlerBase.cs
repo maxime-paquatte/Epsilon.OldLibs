@@ -17,6 +17,13 @@ namespace Epsilon.Messaging.Sql
     {
         internal static ConcurrentDictionary<string, SqlTransaction> _transactions = new ConcurrentDictionary<string, SqlTransaction>();
 
+        public static SqlTransaction GetTransaction(string commandId)
+        {
+            if(_transactions.TryGetValue(commandId, out var transaction))
+                return transaction;
+            return null;
+        }
+        
         private readonly IBus _bus;
         private readonly string _connectionString;
 

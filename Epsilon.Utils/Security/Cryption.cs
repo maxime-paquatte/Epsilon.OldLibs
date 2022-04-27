@@ -119,5 +119,14 @@ namespace Epsilon.Utils.Security
                 throw new Exception("Unable to Deserialize: " + str, ex);
             }
         }
+        
+        /*
+<PropertyGroup>
+  <TargetFramework>net5.0</TargetFramework>
+  <!-- Warning: Setting the following switch is *NOT* recommended in web apps. -->
+  <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+</PropertyGroup>
+         * 
+         */
     }
 }
