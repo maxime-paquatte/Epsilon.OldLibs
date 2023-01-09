@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -9,6 +10,9 @@ namespace Epsilon.Messaging.Host
     public class Bus : IBus
     {
 
+        [field: ThreadStatic]
+        public static string CurrentCommandId { get; set; }
+        
         protected static readonly Dictionary<Type, List<object>> Events = new Dictionary<Type, List<object>>();
         protected readonly IStore _store;
         protected readonly IMessageContextFactory _contextFactory;
@@ -44,6 +48,9 @@ namespace Epsilon.Messaging.Host
 
         public virtual CommandResult Send<T>(T command, string commandId, IEventDispatcher d = null) where T : ICommand
         {
+            Debug.Assert(CurrentCommandId != null, "CurrentCommandId != null");
+            CurrentCommandId = commandId;
+            
             var cmdType = typeof(T);
             using (var scope = _contextFactory.GetScope())
             {
