@@ -66,7 +66,14 @@ namespace Epsilon.Messaging.Sql
                         if (eventElement.ValueKind == JsonValueKind.Null || eventElement.ValueKind == JsonValueKind.Undefined)
                             continue;
 
-                        string eventName = eventElement.GetProperty("EventName").GetString();
+                        if (!eventElement.TryGetProperty("EventName", out var en))
+                        {
+                            var ex = new Exception("EventName not found in event");
+                            ex.Data.Add("json", eventJson);
+                            throw ex;
+                        }
+                        
+                        string eventName = en.GetString();
 
                         var type = _bus.ResolveMessage(eventName);
                         if (type == null) throw new NotSupportedException("Event not found " + eventName);
