@@ -116,8 +116,7 @@ namespace Epsilon.Utils.Security
         /// <returns>A hash of the password.</returns>
         private static byte[] PBKDF2(string password, byte[] salt, int iterations, int outputBytes)
         {
-            Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt);
-            pbkdf2.IterationCount = iterations;
+            Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA1);
             return pbkdf2.GetBytes(outputBytes);
         }
     }

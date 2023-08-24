@@ -7,15 +7,14 @@
     <Company>Epsilon Research</Company>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>    
+    <TargetFramework>net7.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Epsilon.Model.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  
   <ItemGroup>
     <None Remove="Actor\Res\sActorCreate.sql" />
     <None Remove="Culture\Migrations\20210730083547_Initial.sql" />
