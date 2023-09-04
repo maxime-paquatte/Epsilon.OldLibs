@@ -58,7 +58,7 @@ namespace Epsilon.OpenXml
                     else if (dataType == "bool")
                         InsertBool(_document, _sheet, col, row, (byte)value == 1);
                     else
-                        Excel.InsertText(_document, _sheet, col, row, (string)value);
+                        Excel.InsertText(_document, _sheet, col, row, Convert.ToString(value));
                 }
 
                 public void InsertVal(string col, uint row, string value, string dataType)
