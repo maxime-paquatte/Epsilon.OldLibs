@@ -96,7 +96,7 @@ namespace Epsilon.OpenXml
             // By default, AutoSave = true, Editable = true, and Type = xlsx.
             using (var spreadsheetStream = new MemoryStream())
             {
-                SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(spreadsheetStream, SpreadsheetDocumentType.Workbook);
+                using var spreadsheetDocument = SpreadsheetDocument.Create(spreadsheetStream, SpreadsheetDocumentType.Workbook);
 
                 // Add a WorkbookPart to the document.
                 WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
@@ -110,7 +110,6 @@ namespace Epsilon.OpenXml
                 action(spreadsheetDocument);
 
                 workbookpart.Workbook.Save();
-                spreadsheetDocument.Close();
                 spreadsheetStream.Seek(0, SeekOrigin.Begin);
                 spreadsheetStream.CopyTo(stream);
             }
