@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Epsilon.BackgroundTask
 
         public Worker(IServiceProvider services,
             IExceptionLoggerService exceptionLoggerService,
-            ILogger<BackgroundService> logger, 
+            ILogger<BackgroundService> logger,
             Model model, ServicesStore store)
         {
             _services = services;
@@ -50,9 +51,8 @@ namespace Epsilon.BackgroundTask
                 var count = Interlocked.Increment(ref _running);
                 if (count <= 1)
                 {
-                    //check if last task is finish
-                    foreach (var t in _model.ShouldRunTasks())
-                        RunTask(t);
+                    var t = _model.ShouldRunTasks().FirstOrDefault();
+                    if (t != null) RunTask(t);
                 }
             }
             finally
@@ -66,11 +66,11 @@ namespace Epsilon.BackgroundTask
             _logger.LogInformation("BackgroundTask run task: " + task.TaskType);
             try
             {
-                if(!_store.Types.TryGetValue(task.TaskType, out var type))
+                if (!_store.Types.TryGetValue(task.TaskType, out var type))
                     throw new Exception("IBackgroundTask not found in store: " + task.TaskType);
 
                 var service = _services.GetService(type) as IBackgroundTask;
-                
+
                 if (service == null) throw new Exception("task should implement IBackgroundTask");
                 service.Run(task.TaskKey, task.JsonConfig);
                 _model.SetState(task.TaskKey, "done");
