@@ -25,7 +25,15 @@ namespace Epsilon.Utils
             return (maxLength > 0 && url.Length > maxLength) ? url.Substring(0, maxLength - 1) : url;
         }
 
-
+        /// <summary>
+        /// Remove chars that are not allowed in XElement
+        /// </summary>
+        /// <param name="text">The text to clean</param>
+        /// <returns>The cleaned char</returns>
+        public static string CleanInvalidXmlChars(string text)
+        {
+            return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, "[^\\x09\\x0A\\x0D\\x20-\\xD7FF\\xE000-\\xFFFD\\x10000-x10FFFF]", "");
+        }
 
         /// <summary>
         /// Removes diacritics from a string (converts them to their basic form after having filtered NonSpacingMark characters).
