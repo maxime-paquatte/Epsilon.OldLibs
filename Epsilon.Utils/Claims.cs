@@ -17,7 +17,14 @@ namespace Epsilon.Utils
                 required = string.IsNullOrEmpty(required) ? $"%SysAdmin" : $"%SysAdmin|({required})";
             
             var e = new ClaimsEvaluator(user, required);
-            return e.Eval();
+            try
+            {
+                return e.Eval();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error evaluating claims: " + required, ex);
+            }
         }
     }
 

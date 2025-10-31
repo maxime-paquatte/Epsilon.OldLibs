@@ -13,14 +13,14 @@ namespace Epsilon.Utils.Security
         {
             //Change the syllable into UTF8 code
             byte[] pass = Encoding.UTF8.GetBytes(salt + strChange);
-            return Encoding.UTF8.GetString(MD5.Create().ComputeHash(pass));
+            return Encoding.UTF8.GetString(MD5.HashData(pass));
         }
 
         public static string Md5Hash64(string salt, string strChange)
         {
             //Change the syllable into UTF8 code
             byte[] pass = Encoding.UTF8.GetBytes(salt + strChange);
-            return Convert.ToBase64String(MD5.Create().ComputeHash(pass));
+            return Convert.ToBase64String(MD5.HashData(pass));
         }
 
         ///  <summary>
