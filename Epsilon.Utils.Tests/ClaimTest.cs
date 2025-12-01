@@ -44,5 +44,12 @@ namespace Epsilon.Utils.Tests
             Assert.False(Claims.Validate(_userClaims, string.Empty), $"Empty claim should be invalid for user");
             Assert.True(Claims.Validate(_admin, string.Empty), $"Empty claim should be valid for admin");
         }
+        
+        [Fact]
+        public void NegativeClaims()
+        {
+            Assert.False(Claims.Validate(_userClaims,"!User.AAA"), $"Claim '!User.AAA' should be invalid for user");
+            Assert.True(Claims.Validate(_admin, "!User.AAA"), $"Claim '!User.AAA' should be valid for admin");
+        }
     }
 }

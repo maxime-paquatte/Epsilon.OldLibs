@@ -48,69 +48,75 @@ namespace Epsilon.Messaging.Host
 
         public virtual CommandResult Send<T>(T command, string commandId, IEventDispatcher d = null) where T : ICommand
         {
+            using (var scope = _contextFactory.GetScope())
+            {
+                var ctx = scope.GetContext();
+                return Send<T>(command, commandId, ctx, d);
+            }
+        }
+
+        public virtual CommandResult Send<T>(T command, string commandId, IMessageContext ctx, IEventDispatcher d = null) where T : ICommand
+        {
             Debug.Assert(CurrentCommandId != null, "CurrentCommandId != null");
             CurrentCommandId = commandId;
             
             var cmdType = typeof(T);
-            using (var scope = _contextFactory.GetScope())
+
+            var claimsAttr = cmdType.GetCustomAttribute<AnyClaimsAttribute>();
+            if (claimsAttr != null && !_claimsValidator.ValidateAny(ctx, claimsAttr.RequiredClaims))
+                throw new UnauthorizedAccessException("Claims no validated: " + claimsAttr.RequiredClaims);
+
+            var featureAttr = cmdType.GetCustomAttribute<FeatureAttribute>();
+            if (featureAttr != null && !_claimsValidator.ValidateFeature(ctx, featureAttr.Feature))
+                throw new UnauthorizedAccessException("Can not access to feature : " + featureAttr.Feature);
+
+
+            IErrorsCollector errorCollector = new SimpleErrorsCollector();
+
+            _logger.Log(commandId, "Received command of type : " + cmdType.FullName);
+            _logger.Log(commandId, "Command Context was : " + JsonSerializer.Serialize(ctx, _indentedSerializerOptions));
+            _logger.Log(commandId, "Command values was : " + JsonSerializer.Serialize(command, _indentedSerializerOptions));
+
+            var validators = _store.ResolveValidator(cmdType);
+            StdCmdValidator(ctx, command, errorCollector);
+            foreach (var commandValidator in validators)
             {
-                var ctx = scope.GetContext();
+                _logger.Log(commandId, "Run validator : " + commandValidator.GetType().FullName);
+                var validator = (ICommandValidator<T>)commandValidator;
+                validator.Validate(ctx, command, errorCollector);
+            
+            }
 
-                var claimsAttr = cmdType.GetCustomAttribute<AnyClaimsAttribute>();
-                if (claimsAttr != null && !_claimsValidator.ValidateAny(ctx, claimsAttr.RequiredClaims))
-                    throw new UnauthorizedAccessException("Claims no validated: " + claimsAttr.RequiredClaims);
+            _logger.Log(commandId, "Error count : " + errorCollector.Errors.Count());
 
-                var featureAttr = cmdType.GetCustomAttribute<FeatureAttribute>();
-                if (featureAttr != null && !_claimsValidator.ValidateFeature(ctx, featureAttr.Feature))
-                    throw new UnauthorizedAccessException("Can not access to feature : " + featureAttr.Feature);
-
-
-                IErrorsCollector errorCollector = new SimpleErrorsCollector();
-
-                _logger.Log(commandId, "Received command of type : " + cmdType.FullName);
-                _logger.Log(commandId, "Command Context was : " + JsonSerializer.Serialize(ctx, _indentedSerializerOptions));
-                _logger.Log(commandId, "Command values was : " + JsonSerializer.Serialize(command, _indentedSerializerOptions));
-
-                var validators = _store.ResolveValidator(cmdType);
-                StdCmdValidator(ctx, command, errorCollector);
-                foreach (var commandValidator in validators)
+            if (!errorCollector.HasError)
+            {
+                var handlers = _store.ResolveCommandHandlers(command.GetType());
+                foreach (var handler1 in handlers)
                 {
-                    _logger.Log(commandId, "Run validator : " + commandValidator.GetType().FullName);
-                    var validator = (ICommandValidator<T>)commandValidator;
-                    validator.Validate(ctx, command, errorCollector);
-                
-                }
-
-                _logger.Log(commandId, "Error count : " + errorCollector.Errors.Count());
-
-                if (!errorCollector.HasError)
-                {
-                    var handlers = _store.ResolveCommandHandlers(command.GetType());
-                    foreach (var handler1 in handlers)
+                    var handler = (ICommandHandler<T>)handler1;
+                    _logger.Log(commandId, "Handle command : " + handler.GetType().FullName);
+                    try
                     {
-                        var handler = (ICommandHandler<T>)handler1;
-                        _logger.Log(commandId, "Handle command : " + handler.GetType().FullName);
-                        try
-                        {
-                            handler.Handle(d ?? this, ctx, commandId, command);
-                        }
-                        catch (Exception ex)
-                        {
-                            var newEx = new Exception("Error while handling command : " + handler.GetType().FullName, ex);
-                            newEx.Data["commandId"] = commandId;
-                            newEx.Data["Command"] = JsonSerializer.Serialize(command, _indentedSerializerOptions);
-                            newEx.Data["Context"] = JsonSerializer.Serialize(ctx, _indentedSerializerOptions);
-                            throw newEx;
-                        }
+                        handler.Handle(d ?? this, ctx, commandId, command);
+                    }
+                    catch (Exception ex)
+                    {
+                        var newEx = new Exception("Error while handling command : " + handler.GetType().FullName, ex);
+                        newEx.Data["commandId"] = commandId;
+                        newEx.Data["Command"] = JsonSerializer.Serialize(command, _indentedSerializerOptions);
+                        newEx.Data["Context"] = JsonSerializer.Serialize(ctx, _indentedSerializerOptions);
+                        throw newEx;
                     }
                 }
-
-                return new CommandResult
-                {
-                    CommandId = commandId,
-                    CommandValidationErrors = errorCollector.Errors
-                };
             }
+
+            return new CommandResult
+            {
+                CommandId = commandId,
+                CommandValidationErrors = errorCollector.Errors
+            };
+            
         }
 
         public virtual void StdCmdValidator(IMessageContext context, ICommand cmd, IErrorsCollector errors)

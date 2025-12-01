@@ -10,6 +10,8 @@ namespace Epsilon.Messaging
 
         CommandResult Send<T>(T command, string commandId, IEventDispatcher d) where T : ICommand;
 
+        CommandResult Send<T>(T command, string commandId, IMessageContext ctx, IEventDispatcher d = null) where T : ICommand;
+
         Type ResolveMessage(string fullName);
 
         DisposableCallback On<T>(Action<T> e);
